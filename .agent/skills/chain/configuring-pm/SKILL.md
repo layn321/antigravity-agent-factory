@@ -720,7 +720,7 @@ To minimize API calls and ensure consistent state transitions, use the following
 - **Workflow Closure**: Every transition to a verified state MUST be followed by a Plane status update to `Done`.
 
 ## Verification
-- Run `conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py states` to confirm these states match the live system.
+- Use `mcp_plane_list_states` with `project_id: "e71eb003-87d4-4b0c-a765-a044ac5affbe"` to confirm these states match the live cloud Plane instance.
 - Ensure all skill-driven updates use exactly these string values.
 
 ## When to Use

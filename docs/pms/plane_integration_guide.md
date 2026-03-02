@@ -1,6 +1,6 @@
-# Plane PMS Native Integration: Technical Guide
+# Plane PMS Integration Guide
 
-This document provides a comprehensive overview of the **Plane Project Management System (PMS)**, its internal architecture, and the native integration patterns utilized by the Antigravity Agent Factory.
+This document provides a comprehensive overview of the **Plane Project Management System (PMS)** and how the Antigravity Agent Factory integrates with it.
 
 ---
 
@@ -13,128 +13,153 @@ This document provides a comprehensive overview of the **Plane Project Managemen
 - **Issues & Cycles**: Granular task tracking and sprint planning.
 - **Modules**: Grouping issues by logical focus areas.
 - **Views & Pages**: Customizable data visualization and collaborative documentation.
-- **Extensibility**: A robust Django-based backend that allows for direct ORM access—the core of our native integration.
+- **REST API & MCP**: Programmatic access for agentic automation.
 
-### Official Documentation & Community
+### Official Resources
 - **Official Website**: [https://plane.so/](https://plane.so/)
 - **GitHub Repository**: [makeplane/plane](https://github.com/makeplane/plane)
 - **Docs**: [https://docs.plane.so/](https://docs.plane.so/)
 
 ---
 
-## 2. Infrastructure: The "Native-Direct" Pattern
+## 2. Current Architecture: Cloud Plane + MCP
 
-The Antigravity Factory utilizes a **Native-Direct** integration pattern. Unlike standard integrations that rely on external API endpoints or restricted MCP servers, this approach interacts directly with the Plane Django application layer via container execution.
+The Antigravity Agent Factory now uses a **cloud-hosted Plane instance** accessed entirely through the **Plane MCP (Model Context Protocol) server**. This replaces the legacy local Docker-based approach and provides a cleaner, more reliable integration.
 
-### Logic Flow
-1.  **Request**: An agent or developer triggers a command via `scripts/pms/manager.py`.
-2.  **Safe-Passage**: Payload logic is Base64 encoded to bypass shell-escaping vulnerabilities.
-3.  **Execution**: The command is injected into the `plane-api` container via `docker exec`.
-4.  **ORM Interaction**: The command executes within the authenticated Django environment, ensuring 100% data integrity and bypassing REST API limitations.
+### How It Works
 
----
+```
+Agent Request  →  MCP Tool Call (mcp_plane_*)  →  Cloud Plane API  →  Response
+```
 
-## 3. Simplified Local Setup
+1. **Request**: An agent needs to create, update, or query work items.
+2. **MCP Tool Call**: The agent invokes a `mcp_plane_*` tool (e.g., `mcp_plane_create_work_item`).
+3. **Cloud API**: The Plane MCP server routes the request to the cloud-hosted Plane instance via its REST API.
+4. **Response**: Structured JSON data is returned directly to the agent.
 
-To get Plane running on your local machine for use with this integration, follow these streamlined steps.
+### Advantages Over the Legacy Approach
+| Aspect | Legacy (Docker/Local) | Current (Cloud/MCP) |
+| :--- | :--- | :--- |
+| **Infrastructure** | Self-hosted, 12 Docker containers | Zero infrastructure; managed cloud |
+| **Interface** | Python script → `docker exec` → Django ORM | Direct `mcp_plane_*` tool calls |
+| **Reliability** | Dependent on local Docker health | Cloud-managed uptime |
+| **Agent Access** | Subprocess calls via `manager.py` | Native MCP tool integration |
+| **Shell Safety** | Required Base64 encoding for payloads | Not applicable; structured JSON |
+| **Maintenance** | Manual upgrades, container restarts | Automatic cloud updates |
 
-### Prerequisites
-- **Docker & Docker Compose** installed. [Official Docker Install Guide](https://docs.docker.com/get-docker/)
+### Project Context
 
-### Quick Start (The "One-Command" Setup)
-1. **Prepare Environment**:
-   ```bash
-   mkdir plane-self-host && cd plane-self-host
-   curl -fsSL https://raw.githubusercontent.com/makeplane/plane/master/deploy/self-host/install.sh -o setup.sh
-   chmod +x setup.sh
-   ```
-2. **Run Configurator**:
-   ```bash
-   ./setup.sh --install
-   # Set your domain to 'localhost' when prompted.
-   ```
-3. **Lift Service Stack**:
-   ```bash
-   ./setup.sh --start
-   ```
-Access Plane at `http://localhost:8080` (default port).
+| Property | Value |
+| :--- | :--- |
+| **Project Identifier** | `AGENT` |
+| **Project ID** | `e71eb003-87d4-4b0c-a765-a044ac5affbe` |
+| **Workspace** | `agent-factory` |
 
 ---
 
-## 4. Service Ecosystem: 12-Component Breakdown
+## 3. MCP Tool Reference
 
-In this environment, the following services work in orchestration to provide the full Plane experience:
+All project management operations use the `mcp_plane_*` tools. Below is a quick-reference mapping.
+
+### Core Operations
+
+| Operation | MCP Tool |
+| :--- | :--- |
+| List work items | `mcp_plane_list_work_items` |
+| Create work item | `mcp_plane_create_work_item` |
+| Retrieve work item | `mcp_plane_retrieve_work_item` |
+| Update work item | `mcp_plane_update_work_item` |
+| Search work items | `mcp_plane_search_work_items` |
+| Delete work item | `mcp_plane_delete_work_item` |
+
+### Metadata & Context
+
+| Operation | MCP Tool |
+| :--- | :--- |
+| List labels | `mcp_plane_list_labels` |
+| List states | `mcp_plane_list_states` |
+| List cycles | `mcp_plane_list_cycles` |
+| List modules | `mcp_plane_list_modules` |
+| Get current user | `mcp_plane_get_me` |
+| List projects | `mcp_plane_list_projects` |
+
+### Associations
+
+| Operation | MCP Tool |
+| :--- | :--- |
+| Add to cycle | `mcp_plane_add_work_items_to_cycle` |
+| Add to module | `mcp_plane_add_work_items_to_module` |
+| Create comment | `mcp_plane_create_work_item_comment` |
+| Create link | `mcp_plane_create_work_item_link` |
+| Create relation | `mcp_plane_create_work_item_relation` |
+
+### Operational Skill
+
+For the full end-to-end workflow (pre-flight checklist, mandatory module/cycle association, label governance), see the [`managing-plane-tasks`](file:///d:/Users/wpoga/Documents/Python%20Scripts/antigravity-agent-factory/.agent/skills/routing/managing-plane-tasks/SKILL.md) skill.
+
+---
+
+## 4. Legacy Architecture (Historical Reference)
+
+> [!NOTE]
+> This section is preserved for historical context. The legacy architecture is **deprecated** and should not be used for new work. All operations should use the MCP tools described in §2–§3.
+
+### The "Native-Direct" Pattern (Deprecated)
+
+The original integration used a **Native-Direct** pattern, interacting directly with the Plane Django application layer via Docker container execution.
+
+**Logic Flow:**
+1. **Request**: An agent or developer triggered a command via `scripts/pms/manager.py`.
+2. **Safe-Passage**: Payload logic was Base64 encoded to bypass shell-escaping vulnerabilities.
+3. **Execution**: The command was injected into the `plane-api` container via `docker exec`.
+4. **ORM Interaction**: The command executed within the authenticated Django environment.
+
+### Legacy Service Ecosystem (12 Components)
 
 | Category | Service | Container Name | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Core** | **API** | `plane-api` | **The Brain**: Handles ORM operations and API logic. |
-| | **Web** | `plane-web` | The primary UI (Next.js/React). |
-| | **Admin** | `plane-admin` | Administrative interface for instance settings. |
-| **Workers** | **Worker** | `plane-worker` | Executes background tasks (notifications, analytics). |
-| | **Beat** | `plane-beat-worker` | Scheduler for recurring background tasks. |
-| | **Space** | `plane-space` | Manages project-specific collaborative "Pages". |
-| **Data** | **DB** | `plane-db` | Postgres backend (Source of Truth). |
-| | **Redis** | `plane-redis` | High-speed caching and task queue management. |
-| | **MinIO** | `plane-minio` | S3-compatible storage for attachments. |
-| **Nervous System** | **Proxy** | `plane-proxy` | Nginx reverse proxy routing traffic. |
-| | **Live** | `plane-live` | Realtime event broadcaster for collaborative UI. |
+| **Core** | **API** | `plane-api` | Handled ORM operations and API logic. |
+| | **Web** | `plane-web` | Primary UI (Next.js/React). |
+| | **Admin** | `plane-admin` | Administrative interface. |
+| **Workers** | **Worker** | `plane-worker` | Background tasks (notifications, analytics). |
+| | **Beat** | `plane-beat-worker` | Scheduler for recurring tasks. |
+| | **Space** | `plane-space` | Collaborative "Pages". |
+| **Data** | **DB** | `plane-db` | Postgres backend. |
+| | **Redis** | `plane-redis` | Caching and task queue. |
+| | **MinIO** | `plane-minio` | S3-compatible attachment storage. |
+| **Network** | **Proxy** | `plane-proxy` | Nginx reverse proxy. |
+| | **Live** | `plane-live` | Realtime event broadcaster. |
 
-### Note on External Services
-In this specific deployment, additional services like **Qdrant** (`antigravity-qdrant`) are utilized by the **Antigravity Agent Factory** for RAG (Retrieval-Augmented Generation), but they are **not** part of the core Plane distribution.
+### Legacy Troubleshooting
 
----
-
-## 5. Troubleshooting: Deployment & Known Issues
-
-### Common Problem: "Unregistered Task" (Celery Errors)
-**Symptoms**: Tracebacks in `plane-worker` logs containing `KeyError` for specific task types (e.g., `issue_activity` or `recent_visited_task`).
-
-**The Cause**: This occurs when the background worker (Celery) receives a task request from the API but doesn't have the task definition registered in its local registry. This is often due to service version mismatch or the worker needing a "clean" discovery cycle.
-
-**Solution**:
-1. **Restart Workers**: Force a fresh registration scan.
-   ```bash
-   docker restart plane-worker plane-beat-worker
-   ```
-2. **Total Stack Reset**: If persistent, stop and clear the stack to reset internal registries.
-   ```bash
-   ./setup.sh --stop
-   ./setup.sh --start
-   ```
-3. **Queue Cleanup**: Flush the Redis cache if "ghost" tasks are stuck in the queue.
-   ```bash
-   docker exec plane-redis redis-cli FLUSHALL
-   ```
-
-### Operational Issues
 | Issue | Root Cause | Solution |
 | :--- | :--- | :--- |
-| `Docker command failed` | Container `plane-api` is stopped. | Run `docker start plane-api`. |
-| `KeyError: bgtasks...` | Worker task registry mismatch. | Restart `plane-worker` (see above). |
-| `State mismatch` | Case/Naming mismatch. | Match exactly with UI (e.g., `In Progress`). |
+| `Docker command failed` | Container `plane-api` stopped. | `docker start plane-api`. |
+| `KeyError: bgtasks...` | Worker task registry mismatch. | Restart `plane-worker`. |
+| `State mismatch` | Case/naming mismatch. | Match exactly with UI values. |
+| Celery "Unregistered Task" | Worker needs fresh registration. | `docker restart plane-worker plane-beat-worker`. |
+
+### Legacy Scripts (Deprecated)
+
+| Script | Purpose | Replacement |
+| :--- | :--- | :--- |
+| `scripts/pms/manager.py` | CLI for issue CRUD via Django ORM | `mcp_plane_*` tools |
+| `scripts/pms/test_plane_conn.py` | API connection test | `mcp_plane_get_me` |
+| `scripts/pms/dump_settings.py` | Dump Django settings | N/A (cloud-managed) |
+| `scripts/pms/migrate_legacy_data.py` | SQLite→Plane migration | One-time use, completed |
 
 ---
 
-## 6. Implementation Details: Shell-Safe Payloads
+## 5. Migration Notes
 
-The integration utilizes a **Base64-Execution bridge** to handle complex HTML descriptions without risking shell-injection.
+The migration from local to cloud Plane occurred as part of the v1.5.x release cycle. Key changes:
 
-### The Bridge Pattern
-```python
-import base64
+1. **Infrastructure**: The 12-container Docker Compose stack was replaced by a managed cloud Plane instance at `plane.so`.
+2. **Interface**: The `manager.py` script (subprocess → `docker exec` → Django ORM) was replaced by the Plane MCP server providing native `mcp_plane_*` tool calls.
+3. **Authentication**: Moved from implicit container-level Django auth to API token-based auth configured in the MCP server config.
+4. **Skill Updates**: The `managing-plane-tasks` skill (v2.0.0) was rewritten to use MCP tools exclusively. The `mastering-project-management` skill was updated to reference MCP operations.
+5. **Legacy scripts**: The `scripts/pms/` directory is retained for reference but all scripts are deprecated.
 
-# 1. Define the Python logic
-cmd_logic = "from plane.db.models import Project; print(Project.objects.all())"
+---
 
-# 2. Encode for shell safe-passage
-encoded = base64.b64encode(cmd_logic.encode()).decode()
-
-# 3. Execute via bridge
-# docker exec plane-api python manage.py shell -c "import base64; exec(base64.b64decode('...'))"
-```
-
-### Advanced Debugging
-Access the Plane shell directly for manual ORM inspection:
-```bash
-docker exec -it plane-api python manage.py shell
-```
+*Operational maturity is the foundation of high-velocity agency.*

@@ -131,9 +131,10 @@ To ensure excellence, use these copy-pasteable patterns for common scenarios.
 ## Troubleshooting & Fail-State
 | Symptom | Probable Cause | Recovery Operation |
 | :--- | :--- | :--- |
-| **Shell Error** (`&` or `|`) | Malformed CLI string. | Use the **Reliability Layer** (`--file`). |
-| **Duplicate Blocked** | Issue already exists. | Use `--force` only if intent is truly distinct. |
-| **Label Inflation** | Missing governance. | Refer to AGENT-85 Taxonomy (Status: Planned). |
+| **MCP Server Unavailable** | Plane MCP server connection lost. | Verify MCP server config in `mcp_config.json`; check cloud Plane instance status. |
+| **UUID Resolution Failure** | Invalid label/state/cycle ID. | Re-query with `mcp_plane_list_labels` / `mcp_plane_list_states` to get current UUIDs. |
+| **Duplicate Work Item** | Issue with same name already exists. | Use `mcp_plane_search_work_items` to find existing item before creating. |
+| **Label Governance Violation** | Label not in the synchronized set. | Use only labels from the Label Governance table above. Verify with `mcp_plane_list_labels`. |
 
 ---
 *Operational maturity is the foundation of high-velocity agency.*

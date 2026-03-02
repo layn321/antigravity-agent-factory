@@ -137,6 +137,13 @@ Create the issue with **all** core metadata in a single call.
 #### Step D: Epic Linking (When Applicable)
 If the work item is a sub-task of a larger Epic, set the `parent` field during Step A. If the Epic UUID was not known at creation time, update it immediately:
 
+**Known Active Epics:**
+| Epic Name | UUID (`parent` field) |
+| :--- | :--- |
+| **Agent System** | `e18df34b-2da0-46a7-bca2-594ca70757c0` |
+| **Statistical Dashboard** | `600ac6d6-fc68-45a2-b207-322f6dfe70aa` |
+| **RAG System** | `867a5341-0b55-4862-9b01-bee535bf29ed` |
+
 ```json
 // Tool: mcp_plane_update_work_item
 {
