@@ -1,8 +1,8 @@
 ---
 name: managing-plane-tasks
-description: Native management of Plane PMS issues and states using direct backend access via Django ORM.
+description: Remote management of Plane PMS issues and states using the Plane MCP server.
 type: skill
-version: 1.0.0
+version: 2.0.0
 category: routing
 agents:
 - python-ai-specialist
@@ -12,185 +12,175 @@ knowledge:
 - plane-integration.json
 - api-integration-patterns.json
 tools:
-- run_command
-- manager.py
+- mcp_plane_list_work_items
+- mcp_plane_create_work_item
+- mcp_plane_update_work_item
+- mcp_plane_retrieve_work_item
+- mcp_plane_list_labels
+- mcp_plane_create_label
+- mcp_plane_list_states
+- mcp_plane_list_cycles
+- mcp_plane_list_modules
+- mcp_plane_get_me
 related_skills:
 - orchestrating-mcp
-- generating-skills
+- mastering-project-management
 templates:
 - ["none"]
-axioms:
-  A1_verifiability: "Uses direct container execution for verifiable state changes."
-  A3_transparency: "Base64 encoding ensures transparent shell-safe payloads."
-  A5_evolutionary_design: "Bypasses unstable API layers for stable, direct management."
 ---
 
-# Native Plane Management
+# Remote Plane Management (MCP)
 
-This skill enables agents to manage projects, issues, and states in a local Plane PMS deployment by executing commands directly against the Plane API container. This bypasses the need for an external MCP server and provides 100% reliability.
+This skill enables agents to manage projects, issues, and states in a remote Plane PMS instance using the **Plane MCP server**. This is the primary and recommended method for all project management operations, replacing the legacy local management scripts.
 
 ## When to Use
-- When you need to create, update, or track tasks in the Plane Project Management System.
-- When existing MCP servers for Plane are unavailable or unauthorized.
-- When performing automated project lifecycle updates during a release or development cycle.
+- When you need to create, update, or track tasks in the hosted Plane instance.
+- For all standard project lifecycle automation (refinement, updates, reporting).
+- When a pure, standardized, and machine-readable interface is required for agentic workflows.
 
 ## Prerequisites
-- **Local Plane Stack**: Plane must be running in Docker (`docker ps` should show `plane-api`).
-- **Conda Environment**: The `D:\Anaconda\envs\cursor-factory` environment must be accessible.
-- **Project Context**: Project ID and Identifier (e.g., `AGENT`) must be known.
+- **Plane MCP Server**: Must be active and configured in `mcp_config.json`.
+- **Project Context**: Project ID (e.g., `e71eb003-87d4-4b0c-a765-a044ac5affbe`) and Identifier (e.g., `AGENT`) must be provided.
+- **Label Synchronization**: Always adhere to the project's global [Label Governance](file:///d:/Users/wpoga/Documents/Python%20Scripts/antigravity-agent-factory/.agent/skills/chain/mastering-project-management/SKILL.md#label-governance-source-of-truth).
 
 ## Process
-Follow these procedures to interact with the Plane PMS native integration via shell commands.
 
-### 1. Listing Issues & Filtering
-To list components, prefer JSON output for programmatic parsing. **You can combine filters for high-precision discovery**:
-```powershell
-# List all issues in AGENT project
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py list --json
+Follow this end-to-end workflow for all Plane project management operations.
 
-# Filter by state (e.g., Backlog, Todo, In Progress, Done, Cancelled)
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py list --state "In Progress" --json
+### 1. Listing & Discovery
+Use `mcp_plane_list_work_items` with appropriate filtering. Prefer `expand` for full metadata.
 
-# Filter by cycle/sprint
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py list --cycle "sprint 002" --json
-
-# Filter by module
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py list --module "rag system" --json
-
-# Combined filter: Done issues in sprint 002
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py list --cycle "sprint 002" --state "Done" --json
-
-# List all projects
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py projects --json
-
-# List all modules in the project
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py modules --json
+```json
+// Tool: mcp_plane_list_work_items
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "expand": "labels,state,assignees",
+  "order_by": "-updated_at"
+}
 ```
 
-### 3. Creating Professional Issues
-Always include **Cycle**, **Module**, **Assignee**, **Priority**, and **Dates** for factory-grade orchestration. Use `members`, `labels`, and `modules` commands to find valid metadata values.
+### 2. Detailed Inspection
+Retrieve the full details of a specific item, including description and comments.
 
-**Standard Command:**
-```powershell
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py create `
-  --name "FEATURE: Component Name" `
-  --description "<b>Description:</b> Detailed HTML or text..." `
-  --priority "high" `
-  --state "Todo" `
-  --cycle "sprint 003" `
-  --module "component" `
-  --assignee "email@example.com" `
-  --start-date "2026-03-01" `
-  --target-date "2026-03-08" `
-  --estimate 5 `
-  --labels feature cleanup
+```json
+// Tool: mcp_plane_retrieve_work_item
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "work_item_id": "UUID-OR-IDENTIFIER"
+}
 ```
 
-**Metadata Lookup:**
-```powershell
-# Find valid assignees
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py members --json
+### 3. Professional Task Creation (Mandatory Workflow)
 
-# Find valid labels (case-sensitive!)
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py labels --json
+A work item is **NOT considered created** until ALL mandatory properties are set. Agents MUST execute Steps A through D in sequence. **No exceptions.**
 
-# Find valid modules
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py modules --json
+> [!CAUTION]
+> Creating a work item without start_date, target_date, estimate, labels, module, and cycle is a governance violation. Always complete the full workflow.
+
+#### Pre-Flight Checklist
+Before calling `mcp_plane_create_work_item`, resolve ALL of the following:
+
+| Property | How to Resolve | Required |
+| :--- | :--- | :---: |
+| `labels` | `mcp_plane_list_labels` → pick 1+ label UUIDs | ✅ |
+| `assignees` | `mcp_plane_get_me` → use your own UUID | ✅ |
+| `state` | `mcp_plane_list_states` → pick initial state (usually Todo) | ✅ |
+| `start_date` | ISO 8601 date (e.g., `"2026-03-02"`) | ✅ |
+| `target_date` | ISO 8601 date (e.g., `"2026-03-08"`) | ✅ |
+| `estimate_point` | Use project estimate scale UUID | ✅ |
+| `parent` | If item belongs to an Epic, set the Epic's work item UUID | ⚠️ If applicable |
+| Module | Resolved in Step B | ✅ |
+| Cycle | Resolved in Step C | ✅ |
+
+#### Step A: Full Issue Creation
+Create the issue with **all** core metadata in a single call.
+
+```json
+// Tool: mcp_plane_create_work_item
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "name": "FEATURE: Implement Multi-Agent 'Analyst Society' for Dashboards",
+  "description_html": "<div>Develop a LangGraph-based multi-agent coordination flow...</div>",
+  "priority": "high",
+  "state": "8e155185-58ad-404b-8458-6a7c9edbf09b",
+  "assignees": ["e559df98-fc43-4578-a3e0-3b77e3b35bc4"],
+  "labels": ["57a1da51-90c6-46db-9340-6c88ac9b1ed0"],
+  "start_date": "2026-03-02",
+  "target_date": "2026-03-08",
+  "estimate_point": "a1f66f54-0f4b-4ca1-9979-a34087b4594a",
+  "parent": "EPIC-UUID-IF-APPLICABLE"
+}
 ```
 
-### 4. Updating Issues
-Use for status changes or appending technical updates:
-```powershell
-# Change state
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py update AGENT-5 --state "Done"
+#### Step B: Mandatory Module Association (exactly 1 module)
 
-# Append technical update (adds timestamp and separator)
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py update AGENT-5 --description "Logic verified with tests." --append
+```json
+// Tool: mcp_plane_add_work_items_to_module
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "module_id": "a4123817-7b59-474a-b4d2-7d0fcb3d3fc9",
+  "issue_ids": ["NEW-ISSUE-UUID"]
+}
 ```
 
-## Best Commands
-- **Professional Creation**: Use all metadata flags (`--cycle`, `--module`, etc.) to ensure issues are correctly bucketed in Plane.
-- **JSON for Parsing**: Always use `--json` when reading metadata or issue lists for programmatic use.
-- **Append for History**: Use `--append` during updates to maintain a chronological audit trail in the description.
+#### Step C: Mandatory Cycle Association
 
-## Anti-Patterns
-- **Missing Metadata**: Creating issues without cycle or module (makes them hard to track in PMS).
-- **Manual ID Guessing**: Hardcoding sequence IDs instead of listing them first.
-- **Generic Titles**: Using titles like "Fix bug" instead of "FIX: [Component] Null pointer in TOC extraction".
-
-### Supported Issue States (DO NOT QUERY DYNAMICALLY)
-Plane uses the following hardcoded standard states. **DO NOT run the `states` command to check for states before updating or filtering. Memorize and use these exact strings:**
-- `Backlog`
-- `Todo`
-- `In Progress`
-- `Done`
-- `Cancelled`
-
-### 2. Creating & Detailed Inspection
-To create or inspect a specific issue:
-```powershell
-# Create task
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py create --name "Task Title" --description "Details"
-
-# Get full issue metadata (JSON)
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py details AGENT-1
+```json
+// Tool: mcp_plane_add_work_items_to_cycle
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "cycle_id": "ACTIVE-CYCLE-UUID",
+  "issue_ids": ["NEW-ISSUE-UUID"]
+}
 ```
 
-### 3. Precision Updates
-Update specific fields with precision:
-```powershell
-# Update status and description
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py update AGENT-1 --state "In Progress" --description "Updated scope"
+#### Step D: Epic Linking (When Applicable)
+If the work item is a sub-task of a larger Epic, set the `parent` field during Step A. If the Epic UUID was not known at creation time, update it immediately:
 
-# Rename task (Efficiency: prevents duplicate tasks for minor scope shifts)
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py update AGENT-1 --name "New Explicit Title"
-
-### 4. Advanced Direct Execution
-For custom queries or operations not covered by the CLI:
-```powershell
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py run_django "from plane.db.models import Module; print(list(Module.objects.all().values('name', 'id')))"
+```json
+// Tool: mcp_plane_update_work_item
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "work_item_id": "NEW-ISSUE-UUID",
+  "parent": "EPIC-PARENT-UUID"
+}
 ```
+
+### 4. Updating Status & Metadata
+Move issues through the lifecycle by updating the `state` or adding professional progress reports.
+
+```json
+// Tool: mcp_plane_update_work_item
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "work_item_id": "ITEM-UUID",
+  "state": "ef4b2395-3edb-41e9-adcd-7ec77d534f0f" // Done UUID
+}
+```
+
+## Label Governance (Source of Truth)
+
+All labeling must strictly follow the synchronized set:
+- `BUG`, `CORE`, `DATA`, `DOCU`, `FEATURE`, `TEST`, `UI`
+- `ORCHESTRATION`, `GROUNDING`, `INTEGRATION`, `INFRA`, `SKILL`
+
+> [!IMPORTANT]
+> Use `mcp_plane_list_labels` to verify available labels and their IDs before creating or updating work items.
 
 ## Professional Documentation Standards
-
-All issue updates, especially closures, MUST provide high transparency and professional technical details. Do not just state "Fixed" or "Done".
-
-### Mandatory Reporting Components
-1. **Technical Summary**: A 1-2 sentence overview of the core problem and the high-level approach taken.
-2. **Files Affected**: List the key files modified or created.
-3. **Internal Logic/Pattern**: Explain *why* the solution was implemented this way (e.g., "bypassed API due to 401 errors").
-4. **Verification Proof**: State exactly which tests were run and the results (e.g., "pytest passed 131/131").
-5. **Future Prevention**: Document any new rules, scripts, or quality gates added to prevent regression.
-
-### Example Professional Update
-```powershell
-conda run -p D:\Anaconda\envs\cursor-factory python scripts/pms/manager.py update AGENT-16 --state "Done" --description "<b>VERIFIED: Structural Hardening & Sync accomplished.</b><br><ul><li><b>Core Fix:</b> Repaired structural flaws in MD/JSON artifacts to satisfy CI gates.</li><li><b>Files:</b> Patched agent-1-bridge.md, dashboard-knowledge.json, and 12 others.</li><li><b>Logic:</b> Aligned manifest counts (194) with filesystem reality.</li><li><b>Proof:</b> 131/131 pytest passed.</li><li><b>Prevention:</b> Integrated verify_structures.py into the generation lifecycle.</li></ul>"
-```
-
-## Best Commands to Use
-| Operation | Recommended Command Pattern | Goal |
-|-----------|-----------------------------|------|
-| **Discovery** | `projects` \| `list --json` \| `list --state "Done" --json` | Mapping current project landscape & filtering |
-| **Inspection** | `details <ID>` | Deep understanding of a specific roadblock |
-| **Reporting** | `update <ID> --description "<ul><li>Item</li></ul>"` | Professional progress broadcasting |
-| **Refactoring** | `update <ID> --name "..."` | Aligning issue titles with evolving goals |
-| **Custom Ops** | `run_django "..."` | Bypassing limitations for specific data needs |
+When closing issues, provide a detailed summary of the accomplishment:
+- **Technical Summary**: High-level problem and solution.
+- **Files Affected**: Key modules modified.
+- **Verification Proof**: Test results and coverage details.
+- **Future Prevention**: Added guards or scripts.
 
 ## Best Practices
-- **Explicit Project IDs**: Always verify the project ID before performing operations.
-- **State Name Matching**: Use the exact standard state names (`Backlog`, `Todo`, `In Progress`, `Done`, `Cancelled`). Do NOT query the states list.
-- **Filter Issues Efficiently**: If a task requires finding completed or pending work, use the `list --state "..."` capability rather than fetching all issues and filtering in memory.
-- **HTML in Description**: ALWAYS use `<ul>`, `<li>`, and `<b>` tags for professional formatting.
-- **High Transparency**: Document the *how* and *why*, not just the *what*.
-- **Sync Proof**: Include test results or verification command output in the description.
-- **JSON First**: Always try to parse `--json` output when making automated decisions.
+- **Always resolve metadata first**: Use `mcp_plane_list_labels`, `mcp_plane_list_states`, `mcp_plane_get_me` before creating work items to ensure valid UUIDs.
+- **Complete the full workflow**: A work item is not finished until it has labels, assignee, state, dates, module, and cycle attached (Steps A–D).
+- **Use expand for context**: When listing or retrieving items, use `expand: "labels,state,assignees"` to get full metadata in one call.
+- **Never hardcode UUIDs**: Always query for the current label/state/cycle IDs; they may change between environments.
+- **Document closures professionally**: When marking items Done, add a comment with technical summary, files affected, and verification proof.
+- **Respect label governance**: Only use labels from the synchronized set. Run `mcp_plane_list_labels` to verify before tagging.
 
-## Anti-Patterns
-- **Using `--title`**: The CLI uses `--name` for the issue title. Using `--title` will cause a crash.
-- **Using `--state_name`**: The CLI argument is `--state`. The internal function uses `state_name`, but the subagent must use the CLI flag.
-- **Vague Statuses**: Setting state to "Done" without a detailed HTML description is a violation of professional reporting standards.
-- **Incorrect Environment**: Running without the `-p D:\Anaconda\envs\cursor-factory` flag will lead to missing dependency errors.
-
-## References
-- Plane documentation: [https://docs.plane.so/](https://docs.plane.so/)
-- Local PMS Deployment: `apps/pms/docker-compose.yml`
+---
+*Operational maturity is the foundation of high-velocity agency.*

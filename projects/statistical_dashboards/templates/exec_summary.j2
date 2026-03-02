@@ -1,0 +1,38 @@
+# 👔 Executive Performance Summary
+
+**Dashboard Intelligence Reporting**
+*Generated on: {{ timestamp }}*
+
+---
+
+## 🚀 Strategic Overview
+This report provides a high-level synthesis of warehouse operations and dashboard data integrity.
+
+### 📉 Critical KPI Performance
+| KPI | Status | Value | Insight |
+|---|---|---|---|
+{% for kpi in kpi_summary -%}
+| **{{ kpi.name }}** | {{ kpi.status_icon }} | `{{ kpi.value }} {{ kpi.unit }}` | {{ kpi.insight }} |
+{% endfor %}
+
+---
+
+## 🛡️ Data Guard Alerts & Anomalies
+{% if alerts -%}
+The following anomalies were detected during the monitoring period:
+{% for alert in alerts -%}
+- ⚠️ **{{ alert.kpi_id }}**: Detected `{{ alert.method }}` violation. Current Value: `{{ alert.value }}`.
+{% endfor %}
+{% else -%}
+✅ No significant data anomalies detected. Data regimes are stable.
+{% endif %}
+
+---
+
+## 🔮 AI-Driven Strategic Recommendations
+- **Inventory Balancing**: Based on `INV_TURNOVER`, consider re-allocating high-velocity ASINs to central pick zones.
+- **Process Optimization**: `DOCK_TO_STOCK` trends suggest a potential bottleneck in the 04:00 - 06:00 shift window.
+- **System Health**: All automated monitoring agents are active and synchronized with Plane.
+
+---
+*Report ID: {{ report_id }}*

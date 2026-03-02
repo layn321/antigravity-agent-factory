@@ -5,6 +5,7 @@ import asyncio
 from typing import Annotated, Sequence, TypedDict, Union, List
 
 from langchain_google_genai import ChatGoogleGenerativeAI
+from scripts.ai.llm_config import get_primary_model, get_temperature
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage
 from langchain_core.tools import tool
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -87,7 +88,9 @@ async def run_agentic_rag(query: str):
     """Entry point to execute the RAG graph."""
     # Initialization
     # Note: In production, GEMINI_API_KEY must be in env
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
+    llm = ChatGoogleGenerativeAI(
+        model=get_primary_model(), temperature=get_temperature()
+    )
 
     tools, client = await get_patched_tools()
     app = create_rag_graph(tools, llm)

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "INV_TURNOVER",
+    "name": "Inventory Turnover Ratio",
+    "description": "Measures how many times inventory is sold/replaced over a period.",
+    "formula": "Total Sales / Average Inventory",
+    "unit": "Ratio",
+    "owner": "Warehouse Operations",
+    "source_file": "core\\business_manager.py"
+  },
+  {
+    "id": "BIN_DENSITY",
+    "name": "Bin Utilization Density",
+    "description": "Percentage of available bins containing at least one ASIN.",
+    "formula": "(Unique Utilized Bins / Total Bin Count) * 100",
+    "unit": "Percentage (%)",
+    "owner": "Inventory Control",
+    "source_file": "core\\business_manager.py"
+  },
+  {
+    "id": "DOCK_TO_STOCK",
+    "name": "Dock-to-Stock Cycle Time",
+    "description": "Time elapsed from trailer arrival to first stow.",
+    "formula": "Avg(Stow Time - Dock Time)",
+    "unit": "Hours",
+    "owner": "Inbound Operations",
+    "source_file": "core\\business_manager.py"
+  },
+  {
+    "id": "UPH",
+    "name": "Units Per Hour",
+    "description": "Overall productivity rate for a processing station.",
+    "formula": "Total Units / Total Process Hours",
+    "unit": "Units/Hour",
+    "owner": "Fulfillment Center Mgmt",
+    "source_file": "core\\business_manager.py"
+  }
+]

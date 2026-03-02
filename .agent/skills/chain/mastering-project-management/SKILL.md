@@ -1,24 +1,14 @@
 ---
-agents:
-- none
-category: chain
-description: Tactical Blueprint for Modern Project Management (Scrum/Kanban) and Reporting.
-  Focuses on procedural truth for backlog health, sprint flow, and metrics.
-knowledge:
-- none
 name: mastering-project-management
-related_skills:
-- none
-templates:
-- none
-tools:
-- none
+description: Procedural truth for orchestrating high-fidelity software delivery via Plane MCP server.
 type: skill
-version: 1.0.0
+version: 2.0.0
+category: chain
 ---
+
 # Capability Manifest: Project Management Mastery
 
-This blueprint provides the **procedural truth** for orchestrating high-fidelity software delivery within the Antigravity Agent Factory.
+This blueprint provides the **procedural truth** for orchestrating high-fidelity software delivery. The key is to use the **Plane MCP server** for all remote operations (Issue creation, label management, state updates) and standardized naming conventions to ensure the project remains high-fidelity and machine-readable.
 
 ## When to Use
 
@@ -30,10 +20,11 @@ Follow these procedures to implement the capability:
 
 ### Procedure 1: Backlog Excellence (Refinement)
 1.  **Definition of Ready (DoR)**: A story is only ready when it has:
-    - Persona-based Description.
-    - 3+ Clear Acceptance Criteria (AC).
-    - Link to a parent Epic.
-    - Estimation (Points/Hours).
+    - **Persona-based Description**: Clear "As a... I want... So that..." or structured **# Goal** header.
+    - **3+ Clear Acceptance Criteria (AC)**: Explicit validation steps.
+    - **Link to a parent Epic**: Or appropriate Module/Cycle categorization.
+    - **Estimation (Points/Hours)**: Every task must have an estimate.
+    - **Technical Context**: Implementation notes to guide the developer agent.
 2.  **MoSCoW Prioritization**: Mandatory tags for every story:
     - `Must`: Essential for the next release.
     - `Should`: Important but not critical.
@@ -62,10 +53,30 @@ Follow these procedures to implement the capability:
 
 | Action | Tool / Command |
 | :--- | :--- |
-| Create Story | `pm.create_item()` |
-| List Backlog | `pm.list_backlog()` |
-| Generate Report | `pm.generate_status_report()` |
-| Update Config | `pm-configuration` |
+| Create Work Item | `mcp_plane_create_work_item` |
+| List Work Items | `mcp_plane_list_work_items` |
+| Retrieve Item | `mcp_plane_retrieve_work_item` |
+| Update Item | `mcp_plane_update_work_item` |
+| Search Items | `mcp_plane_search_work_items` |
+
+## Label Governance (Source of Truth)
+
+Every work item MUST be tagged with at least one label from this synchronized set. For **Remote Plane** operations, always use the `mcp_plane` tools (`create_label`, `update_label`, `list_labels`) to maintain this synchronization. Do NOT use local management scripts for remote label administration.
+
+| Label | Description |
+| :--- | :--- |
+| `BUG` | Defect or unexpected behavior. |
+| `CORE` | Core system infrastructure and logic. |
+| `DATA` | Data models, migrations, and pipelines. |
+| `DOCU` | Documentation and knowledge items. |
+| `FEATURE` | New functional capabilities. |
+| `TEST` | Testing infrastructure and test cases. |
+| `UI` | User interface and experience. |
+| `ORCHESTRATION` | Agent coordination, loops, and supervisor logic. |
+| `GROUNDING` | RAG patterns, knowledge retrieval, and memory management. |
+| `INTEGRATION` | MCP server connections and external API logic. |
+| `INFRA` | Environment setup, Conda, and shell platform management. |
+| `SKILL` | Development and refinement of agent skills. |
 
 ## Best Practices
 Before starting a sprint:
@@ -73,3 +84,56 @@ Before starting a sprint:
 - [ ] Total points < 105% of historical velocity.
 - [ ] Dependencies map is clear (No circular blocks).
 - [ ] Release target is identified and dated.
+
+## Example Library (Recipes)
+
+To ensure excellence, use these copy-pasteable patterns for common scenarios.
+
+### 1. Creating a Standardized Feature
+```json
+// Tool: mcp_plane_create_work_item
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "name": "FEATURE: Implement OIDC Authentication Support",
+  "priority": "high",
+  "description_html": "<div>Develop and integrate OIDC auth flow...</div>",
+  "labels": ["5248c180-2056-495c-859c-82747b5d1d52", "5b807a8c-09c4-49d5-ac0d-290568780564"] // FEATURE, CORE
+}
+```
+
+### 2. Updating Status & Adding Comments
+```json
+// Tool: mcp_plane_update_work_item
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "work_item_id": "AGENT-42-UUID",
+  "state": "8e155185-58ad-404b-8458-6a7c9edbf09b" // To Do
+}
+
+// Tool: mcp_plane_create_work_item_comment
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "work_item_id": "AGENT-42-UUID",
+  "comment_html": "<div>Verification successful. Moving to Production.</div>"
+}
+```
+
+### 3. Batch Retrieval for Reporting
+```json
+// Tool: mcp_plane_list_work_items
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+  "expand": "assignees,labels,state",
+  "order_by": "-updated_at"
+}
+```
+
+## Troubleshooting & Fail-State
+| Symptom | Probable Cause | Recovery Operation |
+| :--- | :--- | :--- |
+| **Shell Error** (`&` or `|`) | Malformed CLI string. | Use the **Reliability Layer** (`--file`). |
+| **Duplicate Blocked** | Issue already exists. | Use `--force` only if intent is truly distinct. |
+| **Label Inflation** | Missing governance. | Refer to AGENT-85 Taxonomy (Status: Planned). |
+
+---
+*Operational maturity is the foundation of high-velocity agency.*

@@ -1,7 +1,6 @@
 ---
-## Overview
-
 description: Process Optimization & Industrial Engineering Workflow
+dashboard: true
 ---
 
 # Industrial Analyst Optimization Guide

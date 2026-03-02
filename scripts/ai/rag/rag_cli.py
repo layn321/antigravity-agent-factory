@@ -30,6 +30,8 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from scripts.ai.llm_config import get_primary_model, get_temperature
+
 # Force UTF-8 encoding for stdout/stderr to avoid Windows encoding errors
 if sys.platform == "win32":
     import io
@@ -484,7 +486,9 @@ def cmd_summarize(args):
         return
 
     context = "\n\n".join(chunks)[:10000]
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0)
+    llm = ChatGoogleGenerativeAI(
+        model=get_primary_model(), temperature=get_temperature()
+    )
     prompt = f"""Provide a concise 2-3 sentence summary of the following book content.
     Focus on the main topic and target audience. Do not include introductory filler.
 

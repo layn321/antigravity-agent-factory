@@ -144,7 +144,75 @@ class DataManager:
         session.close()
         return ingested_tables
 
+    def update_project(
+        self, project_id, db_manager, name=None, description=None, external_id=None
+    ):
+        """Updates project metadata."""
+        session = db_manager.get_session()
+        from .database import Project
+
+        project = session.query(Project).filter_by(id=project_id).first()
+        if project:
+            if name:
+                project.name = name
+            if description:
+                project.description = description
+            if external_id:
+                project.external_id = external_id
+            session.commit()
+            session.close()
+            return True
+        session.close()
+        return False
+
+    def delete_project(self, project_id, db_manager):
+        """Deletes a project and all associated datasets (cascaded)."""
+        session = db_manager.get_session()
+        from .database import Project
+
+        project = session.query(Project).filter_by(id=project_id).first()
+        if project:
+            session.delete(project)
+            session.commit()
+            session.close()
+            return True
+        session.close()
+        return False
+
+    def update_dataset(self, dataset_id, db_manager, filename=None):
+        """Updates dataset metadata."""
+        session = db_manager.get_session()
+        from .database import Dataset
+
+        dataset = session.query(Dataset).filter_by(id=dataset_id).first()
+        if dataset:
+            if filename:
+                dataset.filename = filename
+            session.commit()
+            session.close()
+            return True
+        session.close()
+        return False
+
+    def delete_dataset(self, dataset_id, db_manager):
+        """Deletes a specific dataset."""
+        session = db_manager.get_session()
+        from .database import Dataset
+
+        dataset = session.query(Dataset).filter_by(id=dataset_id).first()
+        if dataset:
+            session.delete(dataset)
+            session.commit()
+            session.close()
+            return True
+        session.close()
+        return False
+
     def get_summary_stats(self, df):
-        """Returns descriptive statistics for the dataframe."""
-        stats = df.describe(include="all").to_dict()
-        return stats
+        """Returns descriptive statistics for the dataframe, sanitized for JSON."""
+        import numpy as np
+
+        stats = df.describe(include="all")
+        # Replace NaN and Inf with None for JSON compatibility
+        stats = stats.replace({np.nan: None, np.inf: None, -np.inf: None})
+        return stats.to_dict()

@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-03-02
+
+### Added
+- **Central LLM Configuration (AGENT-27)**: Implemented machine-specific `config/llm_config.json` with shared Python loader (`scripts/ai/llm_config.py`), eliminating 16 hardcoded model strings across 12 files.
+- **Dashboard Workflow Suite (AGENT-10)**: Added 6 new dashboard-specific workflows (`dashboard-analysis-routine`, `dashboard-data-health`, `dashboard-insight-reporting`, `dashboard-kpi-governance`, `dashboard-onboarding`, `dashboard-view-builder`) with full structural compliance.
+- **Multi-Agent Analyst Society (AGENT-11)**: Implemented LangGraph-based Supervisor node with SQL and Statistical worker nodes for dashboard analytical depth.
+- **KPI Dictionary Automation (AGENT-12)**: Created KPI scanner, publisher, and `kpi_dictionary.md` generation pipeline with `@KPI` annotation extraction.
+- **Data Guard Alerting System (AGENT-13)**: Built proactive anomaly detection agent with Z-score/IQR methods and `dataguard_config.json` configuration.
+- **Exec Summary Reporting (AGENT-14)**: Automated executive summary generation using Plane cycle data and AI-driven strategic recommendations.
+- **Recursive Factory Parity (AGENT-20)**: Migrated `rag_knowledge_explorer/` to the standardized `.agent/` mirror pattern.
+
+### Changed
+- **RAG TOC Direct Invocation (AGENT-28)**: Refactored `get_rag_toc.py` to call `OptimizedRAG.get_toc()` directly, removing MCP SSE server dependency.
+- **Skill Governance**: Added `## Best Practices` section to `managing-plane-tasks/SKILL.md` and description paragraph under `## Process` for structural test compliance.
+- **Workflow Standardization**: Updated existing dashboard workflows (alpha-factor-mining, backtest-validation, eda, strategy-development, warehouse-analyst, warehouse-ingestion, warehouse-manager) with consistent structure.
+
+### Fixed
+- **PDF TOC Extraction (AGENT-25)**: Implemented deterministic master TOC injection for German textbook via `inject_master_toc.py`, resolving AI hallucination and cache ghost entries.
+- **10 Validation Test Failures (AGENT-29)**: Fixed all failures across `test_workflow_structure`, `test_skills_structure`, `test_yaml_frontmatter`, and `test_sync_artifacts` by repairing YAML frontmatter, adding missing workflow sections, and syncing artifact counts.
+- **Artifact Sync Drift**: Resolved skill count mismatch (75 → 81) via `sync_artifacts.py --sync`.
+
 ## [1.4.2] - 2026-03-01
 
 ### Added

@@ -1,0 +1,12 @@
+{
+    "llm": {
+        "primary_model": "gemini-2.5-flash",
+        "fallback_model": "gemini-2.5-flash-lite",
+        "preview_model": "gemini-3-flash-preview",
+        "default_temperature": 0.0
+    },
+    "embedding": {
+        "model": "sentence-transformers/all-MiniLM-L6-v2",
+        "dimension": 384
+    }
+}

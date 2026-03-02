@@ -1,7 +1,6 @@
 ---
-## Overview
-
 description: Trading strategy development workflow from research through validation. Covers hypothesis formation, entry/exit rules...
+dashboard: true
 ---
 
 # Strategy Development

@@ -1,18 +1,31 @@
 import os
+import json
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Annotated, Sequence
+from typing_extensions import TypedDict
+
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode, tools_condition
 
 from core.config_manager import config_manager
 
 logger = logging.getLogger(__name__)
 
 
+# --- LangGraph State Definition ---
+class AgentState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], add_messages]
+    is_verified: bool
+    verification_feedback: Optional[str]
+
+
 class AIManager:
     """
     Handles interactions with Google Gemini LLMs for analytical insights and NLQ.
-    Implements Phase 2: Intelligence Layer.
+    Implements Phase 3: Agentic Intelligence Layer with LangGraph.
     """
 
     def __init__(
@@ -20,7 +33,6 @@ class AIManager:
     ):
         llm_config = config_manager.get_llm_config()
 
-        # Priority: explicit arg > config file > default
         self.model_name = model_name or llm_config.get(
             "primary_model", "gemini-2.5-flash"
         )
@@ -29,18 +41,15 @@ class AIManager:
             if temperature is not None
             else llm_config.get("default_temperature", 0.0)
         )
-        self.fallback_model = llm_config.get("fallback_model", "gemini-1.5-flash")
+        self.fallback_model = llm_config.get("fallback_model", "gemini-2.5-flash-lite")
 
         self.api_key = os.environ.get("GEMINI_API_KEY")
-        if not self.api_key:
-            logger.warning("GEMINI_API_KEY not found in environment variables.")
 
         # Configure LangSmith Tracing
         os.environ["LANGSMITH_TRACING"] = "true"
         os.environ["LANGSMITH_PROJECT"] = "antigravity-stats-dashboard"
 
         try:
-            # Using centralized model config (e.g., gemini-2.5-flash or gemini-3-flash-preview)
             self.llm = ChatGoogleGenerativeAI(
                 model=self.model_name,
                 google_api_key=self.api_key,
@@ -49,7 +58,6 @@ class AIManager:
             )
         except Exception as e:
             logger.error(f"Failed to initialize LLM with model {self.model_name}: {e}")
-            # Reliable fallback from config
             self.llm = ChatGoogleGenerativeAI(
                 model=self.fallback_model,
                 google_api_key=self.api_key,
@@ -57,23 +65,33 @@ class AIManager:
                 convert_system_message_to_human=True,
             )
 
-    def generate_insight(self, context: str, data_summary: str) -> str:
-        """
-        Generates a plain-language insight based on statistical results.
-        """
-        system_prompt = (
-            "You are an expert data scientist and business analyst at Antigravity Factory. "
-            "Your goal is to explain complex statistical results to non-technical managers. "
-            "Keep your tone professional, actionable, and concise. "
-            "Use Markdown formatting for emphasis."
-        )
+    def _patch_tool_schema(self, tool_dict: Dict[str, Any]) -> Dict[str, Any]:
+        """Strips 'additionalProperties' from tool schema for Gemini compatibility."""
 
-        user_prompt = (
-            f"### Context: {context}\n"
-            f"### Data Summary/Results:\n{data_summary}\n\n"
-            "Please provide a 2-3 sentence insight that explains what these numbers mean "
-            "for the business and what action (if any) should be taken."
+        def clean_schema(s):
+            if not isinstance(s, dict):
+                return
+            if "additionalProperties" in s:
+                del s["additionalProperties"]
+            for v in s.values():
+                if isinstance(v, dict):
+                    clean_schema(v)
+                elif isinstance(v, list):
+                    for item in v:
+                        clean_schema(item)
+
+        new_tool = json.loads(json.dumps(tool_dict))
+        if "parameters" in new_tool:
+            clean_schema(new_tool["parameters"])
+        return new_tool
+
+    def generate_insight(self, context: str, data_summary: str) -> str:
+        """Generates a plain-language insight based on statistical results."""
+        system_prompt = (
+            "You are an expert data scientist at Antigravity Factory. "
+            "Explain complex results clearly and concisely using Markdown."
         )
+        user_prompt = f"Context: {context}\nResults:\n{data_summary}"
 
         try:
             messages = [
@@ -84,53 +102,134 @@ class AIManager:
             return response.content
         except Exception as e:
             logger.error(f"Error generating AI insight: {e}")
-            return f"Error generating automated insight: {str(e)}"
+            return f"Error: {str(e)}"
 
-    def nlq_to_viz(self, query: str, columns: List[str]) -> Dict[str, Any]:
+    def nlq_to_action(self, query: str, context: Dict[str, Any]) -> Any:
         """
-        Processes a natural language query and suggests a visualization type and columns.
+        Agentic entry point: Processes NLQ through a LangGraph reasoning loop with L0 Verification.
         """
-        system_prompt = (
-            "You are a visualization assistant. Given a list of available columns and a user query, "
-            "determine the best visualization type and which columns to use."
+        from core.tools import DATA_TOOLS
+        from core.database import db_manager
+        from core.data_manager import DataManager
+
+        dm = DataManager()
+        tools = DATA_TOOLS
+
+        # Proper binding with schema patching for Gemini
+        # We must bind the tools to the LLM. LangChain's bind_tools handles the conversion to OpenAI/Gemini format.
+        # However, for Gemini we often need to ensure the schema is clean.
+        self.llm_with_tools = self.llm.bind_tools(tools)
+
+        def chatbot(state: AgentState):
+            # The Analyst: Proposes insights and handles tool calls
+            return {"messages": [self.llm_with_tools.invoke(state["messages"])]}
+
+        def verifier(state: AgentState):
+            """
+            The Verifier: Cross-checks the Analyst's last response against tool outputs.
+            Implements Axiom 0: Truth.
+            """
+            last_msg = state["messages"][-1].content
+            # Find the most recent tool outputs to compare against
+            tool_outputs = [
+                m.content for m in state["messages"] if hasattr(m, "tool_call_id")
+            ]
+
+            verification_prompt = (
+                "You are the L0 Verification Agent. Your ONLY job is to verify if the Analyst's "
+                "claims match the raw tool outputs exactly. \n\n"
+                f"Analyst Claim: {last_msg}\n\n"
+                f"Raw Data Context: {' | '.join(tool_outputs[-2:] if tool_outputs else ['No tool data'])}\n\n"
+                "If there is any discrepancy (even minor rounding), provide a correction and set 'verified' to false. "
+                "If it matches perfectly, say 'VERIFIED' and set 'verified' to true."
+            )
+
+            # Ensure we wrap in HumanMessage as Gemini often requires it
+            v_msg = [HumanMessage(content=verification_prompt)]
+            v_res = self.llm.invoke(v_msg).content
+
+            is_verified = "VERIFIED" in v_res.upper()
+
+            if is_verified:
+                return {
+                    "is_verified": True,
+                    "messages": [
+                        SystemMessage(content="Verification passed: Axiom 0 confirmed.")
+                    ],
+                }
+            else:
+                return {
+                    "is_verified": False,
+                    "messages": [
+                        SystemMessage(
+                            content=f"Verification failed: {v_res}. Please correct your response based on the raw data."
+                        )
+                    ],
+                }
+
+        def verification_router(state: AgentState):
+            if state.get("is_verified"):
+                return END
+            # Limit the refinement loops to prevent infinite cycles
+            if len(state["messages"]) > 10:
+                return END
+            return "chatbot"
+
+        workflow = StateGraph(AgentState)
+        workflow.add_node("chatbot", chatbot)
+        workflow.add_node("tools", ToolNode(tools))
+        workflow.add_node("verifier", verifier)
+
+        workflow.add_edge(START, "chatbot")
+        workflow.add_conditional_edges("chatbot", tools_condition)
+        workflow.add_edge("tools", "chatbot")
+
+        # After the chatbot responds without a tool call, send to verifier
+        workflow.add_conditional_edges(
+            "chatbot",
+            lambda x: "verifier" if not tools_condition(x) == "tools" else "tools",
         )
 
-        user_prompt = (
-            f"Available Columns: {', '.join(columns)}\n"
-            f"User Query: '{query}'\n\n"
-            "Return a JSON object with keys: 'chart_type' (scatter, line, bar, heatmap), "
-            "'x_axis', 'y_axis', and 'reasoning'."
+        # Verifier decision
+        workflow.add_conditional_edges("verifier", verification_router)
+
+        app = workflow.compile()
+
+        # Add system context
+        system_msg = SystemMessage(
+            content=(
+                "You are the Antigravity AI Assistant. You have access to the project's datasets. "
+                f"Current Context: {json.dumps(context)}. "
+                "Use tools to answer user questions about data accurately."
+            )
         )
 
-        try:
-            import json
+        initial_state = {
+            "messages": [system_msg, HumanMessage(content=query)],
+            "is_verified": False,
+        }
+        result = app.invoke(initial_state)
 
-            response = self.llm.invoke(user_prompt)
-            # Assuming the LLM returns a clean JSON block or we try to parse it
-            content = response.content
-            # Simple cleanup if the LLM adds markdown backticks
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
+        # We want to return the last message from the chatbot (the Analyst),
+        # but only if the Verifier eventually passed or we timed out.
+        # result["messages"] contains the conversation.
+        # The list of messages looks like: [System, Human, AI(Chatbot), Tool, AI(Chatbot), System(Verifier Outcome)]
 
-            return json.loads(content)
-        except Exception as e:
-            logger.error(f"Error in NLQ to Viz: {e}")
-            return {"error": str(e)}
+        # Find the last message from the Analyst (the "chatbot" node)
+        # Note: result["messages"] is a list of all messages.
+        for msg in reversed(result["messages"]):
+            if isinstance(msg, (BaseMessage)) and not isinstance(msg, SystemMessage):
+                content = msg.content
+                break
+        else:
+            content = result["messages"][-1].content
 
-    def explain_anomaly(self, anomaly_data: Dict[str, Any], context: str) -> str:
-        """
-        Explains why a specific data point is considered an anomaly.
-        """
-        user_prompt = (
-            f"Context: {context}\n"
-            f"Anomaly Details: {anomaly_data}\n\n"
-            "Explain why this point is an outlier and suggest possible operational causes "
-            "(e.g., sensor error, shift change, batch delay)."
-        )
-
-        try:
-            response = self.llm.invoke(user_prompt)
-            return response.content
-        except Exception as e:
-            logger.error(f"Error explaining anomaly: {e}")
-            return f"Could not generate anomaly explanation: {str(e)}"
+        if isinstance(content, list):
+            # Extract text from content parts for Gemini/LangChain compatibility
+            text_parts = [
+                part.get("text", "") if isinstance(part, dict) else str(part)
+                for part in content
+                if not isinstance(part, dict) or part.get("type") == "text"
+            ]
+            return "\n".join(text_parts)
+        return content

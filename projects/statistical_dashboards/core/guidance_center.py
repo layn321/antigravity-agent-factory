@@ -9,35 +9,31 @@ class GuidanceCenter:
 
     @staticmethod
     def get_kpi_dictionary():
-        """Returns a list of core KPIs with definitions and formulas."""
+        """Returns a list of core KPIs with definitions, formulas, and recommendations."""
         return [
             {
                 "KPI": "UPH (Units Per Hour)",
                 "Domain": "Warehouse",
-                "Definition": "The number of items processed (picked, stowed, or packed) by an associate in one hour.",
+                "Definition": "Items processed per associate-hour.",
                 "Formula": "Total Units / Total Active Hours",
-                "Target": "> 80 (Site dependent)",
+                "Recommendation": "Use Bar charts for site comparison, Line charts for shift trends.",
+                "Target": "> 80",
             },
             {
                 "KPI": "LSR (Late Shipment Rate)",
                 "Domain": "Logistics",
-                "Definition": "The percentage of orders shipped after their promised ship date.",
-                "Formula": "(Late Orders / Total Orders) * 100",
+                "Definition": "Percentage of orders missed.",
+                "Formula": "(Late / Total) * 100",
+                "Recommendation": "Use Gauge charts for real-time tracking, Pie charts for root cause analysis.",
                 "Target": "< 4.0%",
             },
             {
-                "KPI": "Dock-to-Stock (D2S)",
+                "KPI": "IRA (Inventory Record Accuracy)",
                 "Domain": "Warehouse",
-                "Definition": "The time taken from the moment a trailer arrives at the dock until the items are available for sale.",
-                "Formula": "Stow Time - Dock Arrival Time",
-                "Target": "< 2.0 Hours",
-            },
-            {
-                "KPI": "Inventory Turnover",
-                "Domain": "Finance",
-                "Definition": "Shows how many times a company has sold and replaced inventory during a specific period.",
-                "Formula": "Cost of Goods Sold / Average Inventory",
-                "Target": "High (indicates efficient management)",
+                "Definition": "Accuracy of physical vs system counts.",
+                "Formula": "(Matches / Total Counts) * 100",
+                "Recommendation": "Use Scatter plots for bin-level precision, Area charts for long-term health.",
+                "Target": "> 99.8%",
             },
         ]
 
@@ -88,63 +84,54 @@ class GuidanceCenter:
                 "Required Columns": [
                     {
                         "Name": "timestamp",
-                        "Format": "ISO (YYYY-MM-DD HH:MM) or Unix",
+                        "Format": "YYYY-MM-DD HH:MM",
                         "Required": True,
                     },
-                    {
-                        "Name": "associate_id",
-                        "Format": "String/Integer",
-                        "Required": True,
-                    },
+                    {"Name": "associate_id", "Format": "String", "Required": True},
                     {
                         "Name": "process_type",
-                        "Format": "Pick, Stow, Pack, etc.",
+                        "Format": "Pick|Stow|Pack",
                         "Required": True,
                     },
-                    {"Name": "activity_count", "Format": "Integer", "Required": True},
-                    {
-                        "Name": "uph",
-                        "Format": "Float/Integer",
-                        "Required": False,
-                        "Note": "Calculated if missing",
-                    },
+                    {"Name": "units", "Format": "Integer", "Required": True},
+                    {"Name": "location_id", "Format": "String", "Required": False},
                 ],
-                "Value Formatting": "Avoid mixing units (e.g., maintain consistant LBS vs KG). Ensure timestamps match the project timezone.",
-                "SOP Reference": "Warehouse Inbound/Outbound standard analysis patterns.",
+                "Value Formatting": "Use 24-hour clock for timestamps. Units must be positive integers.",
+                "SOP Reference": "/warehouse-associate",
+            },
+            "Inventory Accuracy": {
+                "Required Columns": [
+                    {"Name": "sku", "Format": "String", "Required": True},
+                    {"Name": "expected_qty", "Format": "Integer", "Required": True},
+                    {"Name": "counted_qty", "Format": "Integer", "Required": True},
+                    {"Name": "bin_id", "Format": "String", "Required": True},
+                ],
+                "Value Formatting": "Ensure SKUs match the master catalog. Bin IDs should follow site-standard nomenclature.",
+                "SOP Reference": "/warehouse-inventory",
             },
             "Financial (Core)": {
                 "Required Columns": [
                     {"Name": "date", "Format": "YYYY-MM-DD", "Required": True},
-                    {"Name": "account_name", "Format": "String", "Required": True},
-                    {
-                        "Name": "amount",
-                        "Format": "Numeric (Decimal/Float)",
-                        "Required": True,
-                    },
-                    {
-                        "Name": "currency",
-                        "Format": "ISO Code (USD, EUR, etc.)",
-                        "Required": True,
-                    },
-                    {
-                        "Name": "category",
-                        "Format": "Revenue, Expense, COGS",
-                        "Required": True,
-                    },
+                    {"Name": "account", "Format": "String", "Required": True},
+                    {"Name": "amount", "Format": "Decimal", "Required": True},
+                    {"Name": "currency", "Format": "ISO Code", "Required": True},
+                    {"Name": "category", "Format": "Revenue|Expense", "Required": True},
                 ],
-                "Value Formatting": "Amounts should be positive for credits and negative for debits (or vice versa, but be consistent).",
-                "SOP Reference": "Financial Report Consolidation.",
-            },
-            "Generic/Custom": {
-                "Required Columns": [
-                    {"Name": "id", "Format": "Unique Identifier", "Required": True},
-                    {"Name": "label", "Format": "String", "Required": False},
-                    {"Name": "value", "Format": "Numeric", "Required": True},
-                ],
-                "Value Formatting": "Ensure no null values in the ID column.",
-                "Note": "Use the 'Dataset Mapping' tool in the Data Manager for custom alignment.",
+                "Value Formatting": "Amounts: positive for credits, negative for debits.",
+                "SOP Reference": "/fi-development",
             },
         }
+
+    @staticmethod
+    def generate_csv_template(domain: str) -> str:
+        """Generates a CSV header string for the specified domain."""
+        guides = GuidanceCenter.get_data_import_guide()
+        guide = guides.get(domain)
+        if not guide:
+            return ""
+
+        headers = [col["Name"] for col in guide["Required Columns"]]
+        return ",".join(headers) + "\n"
 
     @staticmethod
     def get_system_architecture():

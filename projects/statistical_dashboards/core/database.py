@@ -23,8 +23,11 @@ class Project(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     description = Column(Text)
+    external_id = Column(String(50), nullable=True)  # Associated Plane Issue ID
     created_at = Column(DateTime, default=datetime.utcnow)
-    datasets = relationship("Dataset", back_populates="project")
+    datasets = relationship(
+        "Dataset", back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class Dataset(Base):
@@ -119,7 +122,13 @@ class WarehouseInventory(Base):
 
 
 class DatabaseManager:
-    def __init__(self, db_path="projects/statistical_dashboards/data/dashboards.db"):
+    def __init__(self, db_path=None):
+        if db_path is None:
+            # Resolve relative to this file's directory to ensure it works from any CWD
+            db_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../data/dashboards.db")
+            )
+
         self.db_path = db_path
         self.engine = create_engine(f"sqlite:///{db_path}")
         self.Session = sessionmaker(bind=self.engine)
@@ -147,9 +156,16 @@ class DatabaseManager:
                         id INTEGER PRIMARY KEY,
                         name TEXT NOT NULL,
                         description TEXT,
+                        external_id TEXT,
                         created_at DATETIME
                     )
                 """)
+            else:
+                # Migration for projects
+                cursor.execute("PRAGMA table_info(projects)")
+                proj_columns = [info[1] for info in cursor.fetchall()]
+                if "external_id" not in proj_columns:
+                    cursor.execute("ALTER TABLE projects ADD COLUMN external_id TEXT")
 
             conn.commit()
         except Exception as e:
@@ -159,3 +175,15 @@ class DatabaseManager:
 
     def get_session(self):
         return self.Session()
+
+    def get_all_projects(self):
+        """Retrieves all projects from the database."""
+        session = self.get_session()
+        try:
+            return session.query(Project).all()
+        finally:
+            session.close()
+
+
+# Global instance for easy access
+db_manager = DatabaseManager()

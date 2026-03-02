@@ -11,7 +11,7 @@ from core.connectors.news_connector import NewsConnector
 from core.business_manager import BusinessManager
 from core.templates import TemplateManager
 from core.memory_sync import MemorySyncManager
-from core.workflows import WorkflowManager
+import core.workflows as workflows_mod
 from core.guidance_center import GuidanceCenter
 from core.ai_manager import AIManager
 from core.report_manager import ReportManager
@@ -54,6 +54,17 @@ st.markdown(
         border-radius: 10px;
         border: 1px solid #30363d;
     }
+    /* Glassmorphism for AI Chat */
+    .ai-chat-container {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 20px;
+    }
+    .user-msg { color: #2575fc; font-weight: bold; }
+    .ai-msg { color: #6a11cb; }
     </style>
 """,
     unsafe_allow_html=True,
@@ -73,7 +84,7 @@ def init_managers():
     biz = BusinessManager()
     tpl = TemplateManager()
     msync = MemorySyncManager()
-    wf = WorkflowManager()
+    wf = workflows_mod.WorkflowManager()
     ai = AIManager()
     val = ValidationManager()
     return db, data, viz, analysis, fin, eco, news, biz, tpl, msync, wf, ai, val
@@ -112,6 +123,7 @@ menu = st.sidebar.selectbox(
         "📈 Financial Intel",
         "🌍 Global Economy",
         "📰 Market Sentiment",
+        "🤖 AI Workspace",
         "⚙️ Settings",
     ],
 )
@@ -174,19 +186,25 @@ if menu == "📊 Dashboard":
 elif menu == "📁 Data Manager":
     st.title("📁 Data Management")
 
-    tab1, tab2 = st.tabs(["Create Project", "Upload Data"])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["Create Project", "Upload Data", "Manage Projects", "Manage Datasets"]
+    )
 
     with tab1:
         st.subheader("Start New Project")
-        p_name = st.text_input("Project Name")
-        p_desc = st.text_area("Description")
+        p_name = st.text_input("Project Name", key="new_p_name")
+        p_desc = st.text_area("Description", key="new_p_desc")
         if st.button("Initialize Project"):
-            session = db_manager.get_session()
-            new_p = Project(name=p_name, description=p_desc)
-            session.add(new_p)
-            session.commit()
-            st.success(f"Project '{p_name}' ready!")
-            session.close()
+            if p_name:
+                session = db_manager.get_session()
+                new_p = Project(name=p_name, description=p_desc)
+                session.add(new_p)
+                session.commit()
+                st.success(f"Project '{p_name}' ready!")
+                session.close()
+                st.rerun()
+            else:
+                st.error("Project Name is required.")
 
     with tab2:
         st.subheader("Add Data to Project")
@@ -227,6 +245,16 @@ elif menu == "📁 Data Manager":
                                 "No automatic domain mapping found. Using generic analysis."
                             )
 
+            with st.expander("📖 Need Help with Formatting?"):
+                st.markdown("""
+                **Quick Formatting Checklist:**
+                - Use CSV or Excel (.xlsx) formats.
+                - Ensure no empty headers.
+                - Use consistent date formats (YYYY-MM-DD).
+
+                [Go to Guidance Center -> Import Guide](#data-import-formatting-guide) for templates.
+                """)
+
             st.markdown("---")
             st.caption("🧪 Testing & Automation")
             if st.button("🚀 Load Sample Data (Bypass Upload)"):
@@ -246,6 +274,100 @@ elif menu == "📁 Data Manager":
                 st.rerun()
         else:
             st.warning("Create a project first.")
+        session.close()
+
+    with tab3:
+        st.subheader("🛠️ Project Maintenance")
+        session = db_manager.get_session()
+        projects = session.query(Project).all()
+
+        if projects:
+            p_to_edit = st.selectbox(
+                "Select Project to Manage",
+                [p.name for p in projects],
+                key="edit_proj_select",
+            )
+            proj = session.query(Project).filter_by(name=p_to_edit).first()
+
+            with st.expander("📝 Edit Project Details"):
+                new_name = st.text_input("New Name", value=proj.name)
+                new_desc = st.text_area("New Description", value=proj.description)
+                new_ext_id = st.text_input(
+                    "External ID (Plane)", value=proj.external_id or ""
+                )
+
+                if st.button("Save Changes"):
+                    if data_manager.update_project(
+                        proj.id,
+                        db_manager,
+                        name=new_name,
+                        description=new_desc,
+                        external_id=new_ext_id,
+                    ):
+                        st.success("Project updated!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to update project.")
+
+            with st.expander("❌ Danger Zone", expanded=False):
+                st.warning(
+                    f"Deleting '{proj.name}' will remove all associated datasets and metrics. This cannot be undone."
+                )
+                if st.button(f"Confirm Delete '{proj.name}'"):
+                    if data_manager.delete_project(proj.id, db_manager):
+                        st.success("Project deleted.")
+                        st.rerun()
+                    else:
+                        st.error("Deletion failed.")
+        else:
+            st.info("No projects to manage.")
+        session.close()
+
+    with tab4:
+        st.subheader("📊 Dataset Maintenance")
+        session = db_manager.get_session()
+        projects = session.query(Project).all()
+
+        if projects:
+            p_for_ds = st.selectbox(
+                "Select Project", [p.name for p in projects], key="ds_proj_select"
+            )
+            proj = session.query(Project).filter_by(name=p_for_ds).first()
+
+            if proj.datasets:
+                for dataset in proj.datasets:
+                    with st.container(border=True):
+                        c1, c2, c3 = st.columns([3, 1, 1])
+                        c1.markdown(
+                            f"**{dataset.filename}** ({dataset.row_count} rows)"
+                        )
+
+                        if c2.button("Rename", key=f"ren_{dataset.id}"):
+                            st.session_state[f"ren_mode_{dataset.id}"] = True
+
+                        if c3.button("🗑️ Delete", key=f"del_{dataset.id}"):
+                            if data_manager.delete_dataset(dataset.id, db_manager):
+                                st.success(f"Deleted {dataset.filename}")
+                                st.rerun()
+
+                        if st.session_state.get(f"ren_mode_{dataset.id}", False):
+                            new_fname = st.text_input(
+                                "New Filename",
+                                value=dataset.filename,
+                                key=f"new_name_{dataset.id}",
+                            )
+                            if st.button(
+                                "Confirm Rename", key=f"conf_ren_{dataset.id}"
+                            ):
+                                data_manager.update_dataset(
+                                    dataset.id, db_manager, filename=new_fname
+                                )
+                                del st.session_state[f"ren_mode_{dataset.id}"]
+                                st.rerun()
+            else:
+                st.info("No datasets in this project.")
+        else:
+            st.info("No projects found.")
         session.close()
 
 elif menu == "🏢 Project Center":
@@ -333,15 +455,33 @@ elif menu == "⚙️ Workflow Catalog (SOPs)":
         "Find, configure, execute, and monitor automated AI Agent standard operating procedures."
     )
 
-    workflows = workflow_manager.list_workflows()
+    c1, c2 = st.columns([3, 1])
+    with c1:
+        search_query = st.text_input("🔍 Search Workflows", "")
+    with c2:
+        show_all_sop = st.checkbox("Show All Factory SOPs", value=False)
+
+    import importlib
+
+    importlib.reload(workflows_mod)  # Force reload to pick up strict filtering logic
+    workflow_manager_curated = workflows_mod.WorkflowManager()
+    workflows = workflow_manager_curated.list_workflows(dashboard_only=not show_all_sop)
 
     if workflows:
-        # Search and Filter at the top
-        c1, c2 = st.columns([3, 1])
-        with c1:
-            search_query = st.text_input("🔍 Search Workflows", "")
-        with c2:
-            st.metric("Total SOPs", len(workflows))
+        col_m1, col_m2 = st.columns(2)
+        with col_m1:
+            if not show_all_sop:
+                st.metric("Curated SOPs", len(workflows))
+            else:
+                st.metric("Total Factory SOPs", len(workflows))
+        with col_m2:
+            # Value Help / Searchhelp for Target Project
+            # Note: Now integrated directly into workflow cards below
+            all_projects = db_manager.get_all_projects()
+            project_options = {p.name: str(p.id) for p in all_projects}
+            st.info(
+                "💡 Select a project directly within the workflow configuration below."
+            )
 
         filtered_workflows = [
             w
@@ -380,9 +520,21 @@ elif menu == "⚙️ Workflow Catalog (SOPs)":
 
                     with st.expander("⚙️ Configure & Execute"):
                         st.markdown("**Context Parameters**")
-                        target_proj = st.text_input(
-                            "Target Project Name/ID", key=f"proj_{wf['id']}"
+
+                        # Direct Value Help Integration
+                        project_help_options = ["Global Context"] + list(
+                            project_options.keys()
                         )
+                        selected_proj = st.selectbox(
+                            "Target Project ID (Override)",
+                            options=project_help_options,
+                            key=f"val_help_{wf['id']}",
+                            help="Search and select a project to pre-fill the execution context.",
+                        )
+
+                        target_proj = project_options.get(selected_proj, "")
+                        st.caption(f"Execution Context: `{target_proj or 'Global'}`")
+
                         run_mode = st.selectbox(
                             "Execution Mode",
                             ["Dry Run", "Live Execution"],
@@ -399,14 +551,21 @@ elif menu == "⚙️ Workflow Catalog (SOPs)":
                                     f"🔄 **Target:** {target_proj or 'Global Context'}"
                                 )
                                 st.write(f"⚙️ **Mode:** {run_mode}")
-                                time.sleep(1)
-                                st.write("✅ Parsed workflow steps from markdown.")
-                                time.sleep(1)
-                                st.write(
-                                    "🔄 Initializing underlying agents and tools..."
-                                )
-                                time.sleep(1)
-                                st.write("✅ Execution phase completed safely.")
+
+                                # Real Execution Logic
+                                if run_mode == "Live Execution":
+                                    execution_logs = workflow_manager.execute_workflow(
+                                        wf["id"], {"project_id": target_proj}
+                                    )
+                                    for entry in execution_logs:
+                                        st.write(f"- {entry}")
+                                        time.sleep(0.3)
+                                else:
+                                    st.write(
+                                        "🔍 Dry run completed. No state changes made."
+                                    )
+                                    time.sleep(1)
+
                                 status.update(
                                     label=f"Success: {wf['name']} Completed",
                                     state="complete",
@@ -797,19 +956,19 @@ elif menu == "🏢 Warehousing Intel":
                 ]
             )
             with tab1:
-                from pages.warehouse_inbound import render_inbound_template
+                from _pages.warehouse_inbound import render_inbound_template
 
                 render_inbound_template(project, db_manager, data_manager, viz_manager)
 
             with tab2:
-                from pages.warehouse_inventory import render_inventory_template
+                from _pages.warehouse_inventory import render_inventory_template
 
                 render_inventory_template(
                     project, db_manager, data_manager, viz_manager
                 )
 
             with tab3:
-                from pages.warehouse_outbound import render_outbound_template
+                from _pages.warehouse_outbound import render_outbound_template
 
                 render_outbound_template(project, db_manager, data_manager, viz_manager)
 
@@ -1020,15 +1179,106 @@ elif menu == "💡 Guidance Center":
         )
 
     with help_tabs[1]:
-        st.subheader("📚 KPI Dictionary")
-        kpis = GuidanceCenter.get_kpi_dictionary()
-        for kpi in kpis:
-            with st.expander(f"**{kpi['KPI']}** ({kpi['Domain']})"):
-                st.write(f"**Definition:** {kpi['Definition']}")
-                st.write(f"**Formula:** ` {kpi['Formula']} `")
-                st.write(f"**Target:** {kpi['Target']}")
+        st.subheader("📊 Data Import & Formatting Guide")
+        st.info(
+            "Ensure your datasets match the required schema for automated analysis."
+        )
+
+        guide = GuidanceCenter.get_data_import_guide()
+        domain = st.selectbox("Select Domain", list(guide.keys()))
+
+        if domain:
+            d_info = guide[domain]
+            st.markdown(f"**Description:** {domain} Standard Analysis")
+            st.table(pd.DataFrame(d_info["Required Columns"]))
+            st.caption(f"💡 **Pro-Tip:** {d_info['Value Formatting']}")
+
+            csv_template = GuidanceCenter.generate_csv_template(domain)
+            st.download_button(
+                label=f"📥 Download {domain} CSV Template",
+                data=csv_template,
+                file_name=f"{domain.lower().replace(' ', '_')}_template.csv",
+                mime="text/csv",
+            )
 
     with help_tabs[2]:
+        st.subheader("📚 KPI Dictionary")
+        st.info("Core metrics for Warehouse, Finance, and Logistics optimization.")
+        kpis = GuidanceCenter.get_kpi_dictionary()
+        for kpi in kpis:
+            with st.expander(f"📌 {kpi['KPI']} ({kpi['Domain']})"):
+                st.write(f"**Definition:** {kpi['Definition']}")
+                st.write(f"**Formula:** ` {kpi['Formula']} `")
+                st.success(f"**Target:** {kpi['Target']}")
+                st.info(f"💡 **Viz Tip:** {kpi['Recommendation']}")
+
+    with help_tabs[3]:
+        st.subheader("📋 Analysis Blueprints")
+        st.markdown(
+            "Use these blueprints to structure your dashboards for specific business goals."
+        )
+        blueprints = GuidanceCenter.get_dashboard_blueprints()
+        bp_name = st.selectbox("Select Blueprint", list(blueprints.keys()))
+        if bp_name:
+            st.markdown(f"### {bp_name} Layout")
+            for step in blueprints[bp_name]:
+                st.write(f"- {step}")
+
+    with help_tabs[4]:
+        st.subheader("🔄 Workflow Explorer")
+        st.caption("✨ *Discovery Engine v1.1.0: Strict Frontmatter filtering active*")
+        st.info(
+            "Discover and follow standardized workflows for data science and warehouse operations."
+        )
+
+        import importlib
+
+        importlib.reload(
+            workflows_mod
+        )  # Force reload to pick up strict filtering logic
+        wm = workflows_mod.WorkflowManager()
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            search_q = st.text_input("🔍 Search Workflows", "")
+        with col2:
+            st.write("")  # Spacer
+            show_all = st.checkbox(
+                "Show All",
+                value=False,
+                help="Show all 70+ factory workflows instead of dashboard-specific ones.",
+            )
+
+        # Search within the selected subset (filtered or all)
+        all_relevant = wm.list_workflows(dashboard_only=not show_all)
+
+        if search_q:
+            workflows = [
+                w
+                for w in all_relevant
+                if search_q.lower() in w["name"].lower()
+                or search_q.lower() in w["description"].lower()
+            ]
+        else:
+            workflows = all_relevant
+
+        if workflows:
+            selected_wf = st.selectbox(
+                "Select a workflow to view",
+                options=[w["id"] for w in workflows],
+                format_func=lambda x: next(
+                    w["name"] for w in workflows if w["id"] == x
+                ),
+            )
+
+            if selected_wf:
+                content = wm.get_workflow_content(selected_wf)
+                st.markdown("---")
+                st.markdown(content)
+        else:
+            st.warning("No workflows found matching your search.")
+
+    with help_tabs[5]:
         st.subheader("🔬 Statistical Primer")
         primer = GuidanceCenter.get_statistical_primer()
         for concept, details in primer.items():
@@ -1094,6 +1344,64 @@ elif menu == "💡 Guidance Center":
             **The Solution:** SKUs were re-slotted into Zone A (waist-height), reducing pick time by 12% and meeting all SLA cut-offs.
             """
             )
+
+elif menu == "🤖 AI Workspace":
+    st.title("🤖 AI Agentic Workspace")
+    st.markdown("---")
+
+    # Context Selection
+    session = db_manager.get_session()
+    projects = session.query(Project).all()
+    project_names = [p.name for p in projects]
+
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        st.subheader("Context")
+        sel_proj_name = st.selectbox(
+            "Active Project", project_names if project_names else ["None"]
+        )
+        sel_proj = next((p for p in projects if p.name == sel_proj_name), None)
+
+        if sel_proj:
+            st.info(f"Targeting: {len(sel_proj.datasets)} datasets.")
+        else:
+            st.warning("No project selected for grounding.")
+
+    with col2:
+        st.subheader("Chat with Antigravity AI")
+
+        if "ai_messages" not in st.session_state:
+            st.session_state.ai_messages = []
+
+        # Glassmorphism container for chat history
+        st.markdown('<div class="ai-chat-container">', unsafe_allow_html=True)
+        for msg in st.session_state.ai_messages:
+            role_class = "user-msg" if msg["role"] == "user" else "ai-msg"
+            st.markdown(
+                f'<span class="{role_class}">{msg["role"].upper()}:</span> {msg["content"]}',
+                unsafe_allow_html=True,
+            )
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        if prompt := st.chat_input(
+            "Ask about your data (e.g., 'Summary of dataset 1')"
+        ):
+            st.session_state.ai_messages.append({"role": "user", "content": prompt})
+
+            with st.spinner("Thinking..."):
+                context = {
+                    "project_id": sel_proj.id if sel_proj else None,
+                    "project_name": sel_proj.name if sel_proj else None,
+                    "available_datasets": [d.id for d in sel_proj.datasets]
+                    if sel_proj
+                    else [],
+                }
+                response = ai_manager.nlq_to_action(prompt, context)
+                st.session_state.ai_messages.append(
+                    {"role": "assistant", "content": response}
+                )
+            st.rerun()
+    session.close()
 
 elif menu == "⚙️ Settings":
     st.title("⚙️ System Settings")

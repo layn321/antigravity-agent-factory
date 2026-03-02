@@ -1,7 +1,6 @@
 ---
-## Overview
-
 description: Ingesting Warehouse Operational Data
+dashboard: true
 ---
 
 # Warehouse Data Ingestion Workflow

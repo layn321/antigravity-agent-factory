@@ -382,5 +382,5 @@ See **Guardian Coordination** for complete documentation.
 
 ---
 
-*Antigravity Agent Factory v1.4.2*
+*Antigravity Agent Factory v1.5.0*
 *Start with purpose. Build with excellence. Serve with love.*

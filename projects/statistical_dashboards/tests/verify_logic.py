@@ -1,3 +1,11 @@
+import sys
+import os
+from pathlib import Path
+
+# Add project root to path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from core.database import DatabaseManager
 from core.connectors.financial_connector import FinancialConnector
 from core.connectors.economic_connector import EconomicConnector

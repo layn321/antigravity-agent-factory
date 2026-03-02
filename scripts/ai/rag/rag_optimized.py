@@ -25,8 +25,17 @@ _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.
 QDRANT_PATH = os.path.join(_PROJECT_ROOT, "data", "rag", "qdrant_workspace")
 PARENT_STORE_PATH = os.path.join(_PROJECT_ROOT, "data", "rag", "parent_store")
 COLLECTION_NAME = "ebook_library"
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-VECTOR_SIZE = 384
+
+# LLM & Embedding config — loaded from config/llm_config.json
+from scripts.ai.llm_config import (
+    get_embedding_model,
+    get_embedding_dimension,
+    get_primary_model,
+    get_temperature,
+)
+
+EMBEDDING_MODEL = get_embedding_model()
+VECTOR_SIZE = get_embedding_dimension()
 
 
 class OptimizedRAG:
@@ -58,7 +67,7 @@ class OptimizedRAG:
             # FastEmbed uses ONNX Runtime (CPU optimized) - much faster than Torch
             # Use threads=None to use all available cores
             self._embeddings = FastEmbedEmbeddings(
-                model_name="sentence-transformers/all-MiniLM-L6-v2",  # Explicitly match existing model
+                model_name=EMBEDDING_MODEL,
                 threads=None,
                 cache_dir=os.path.join(
                     os.path.dirname(PARENT_STORE_PATH), "fastembed_cache"
@@ -596,11 +605,12 @@ class OptimizedRAG:
         # --- Strategy 2: Regex heuristic ---
         try:
             chapter_pattern = re.compile(
-                r"^\s*(Chapter|Part|Section|CHAPTER|PART|Kapitel|Teil|Abschnitt)\s+\d+[.::\s]",
-                re.MULTILINE,
+                r"^\s*(Chapter|Part|Section|CHAPTER|PART|Kapitel|Teil|Abschnitt|Anhang)\s+[A-Z\d]+[.::\s]",
+                re.MULTILINE | re.IGNORECASE,
             )
             toc_entries = []
-            max_pages = min(20, len(doc))
+            # Increase scan range for larger books
+            max_pages = min(30, len(doc))
             for i in range(max_pages):
                 page_text = doc[i].get_text("text")
                 for line in page_text.split("\n"):
@@ -641,7 +651,7 @@ class OptimizedRAG:
             raw_text = "\n\n".join(extracted_text)
             if raw_text:
                 llm = ChatGoogleGenerativeAI(
-                    model="gemini-2.0-flash",
+                    model=get_primary_model(),
                     temperature=0.1,
                     max_tokens=2048,
                 )
@@ -658,12 +668,17 @@ Here is the raw text extracted from the first few dozen pages:
 </RAW_TEXT>
 
 INSTRUCTIONS:
-1. Locate the actual Table of Contents within the raw text. Ignore introductory praises, copyright pages, and prefaces unless they are listed IN the TOC.
-2. Extract the hierarchical structure (Parts, Chapters, Sections) and page numbers if available.
-3. Format the output STRICTLY as Markdown bullet points.
-4. Use headers (e.g., `## Part 1`) if the book is divided into parts.
-5. Do not include any conversational filler (e.g. "Here is the TOC:"). ONLY return the markdown TOC itself.
-6. If you cannot find any indication of a Table of Contents, return exactly "NO_TOC_FOUND".
+1. Locate the actual Table of Contents within the raw text.
+   - Note: In German books, look for "Inhalt" or "Inhaltsverzeichnis".
+   - Ignore "Inhaltsübersicht" (Summary) if a more detailed "Inhaltsverzeichnis" exists.
+   - Ignore introductory praises, copyright pages, and prefaces unless they are listed IN the TOC.
+2. Extract the hierarchical structure (Parts/Teile, Chapters/Kapitel, Sections/Abschnitte) and page numbers if available.
+3. Format the output STRICTLY as Markdown bullet points (`*` or `-`). DO NOT just paste the raw text.
+4. CLEANUP: **You must entirely remove all repeating dot-leaders** (e.g. `. . . . . . . .`) typically used in PDF TOCs to connect the title to the page number. The output should just be the title and the page number, separated by a single space.
+5. Use Markdown headers (e.g., `## Part 1` or `## Teil I`) if the book is divided into distinct parts.
+6. Preserve the exact terminology from the book (e.g., use "Kapitel" instead of "Chapter" if the book is in German).
+7. Do not include any conversational filler (e.g. "Here is the TOC:"). ONLY return the markdown TOC itself.
+8. If you cannot find any indication of a Table of Contents, return exactly "NO_TOC_FOUND".
 
 RETURN ONLY THE MARKDOWN TOC:
 """

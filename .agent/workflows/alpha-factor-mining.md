@@ -1,8 +1,7 @@
 ---
-## Overview
-
 version: 1.0.0
 description: Step-by-step guide for finding and testing new predictive features (technical, fundamental, alternative).
+dashboard: true
 ---
 
 # Alpha Factor Mining

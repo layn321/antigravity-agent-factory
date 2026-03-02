@@ -57,31 +57,22 @@ class MemorySyncManager:
         manager_script = "scripts/pms/manager.py"
         conda_exec = "conda run -p D:\\Anaconda\\envs\\cursor-factory"
 
-        # Map project to issue ID (assuming AGENT-1 for now or project metadata)
-        # In a real scenario, the project object would have an external_id or similar.
-        issue_id = getattr(project, "external_id", "AGENT-1")
+        # Map project to issue ID using the new external_id field
+        issue_id = getattr(project, "external_id", None)
+        if not issue_id:
+            return False, "Project has no associated Plane Issue ID (external_id)."
 
         import subprocess
 
         # Prepare safe description for shell
-        # On Windows, we need to wrap in double quotes and escape internal ones
+        # We use repr() to ensure the string is safely escaped for Python/Shell
         safe_description = summary_html.replace('"', '\\"')
 
-        cmd = [
-            "python",
-            manager_script,
-            "update",
-            "--id",
-            issue_id,
-            "--description",
-            f'"{safe_description}"',
-        ]
+        cmd = f'{conda_exec} python {manager_script} update --id {issue_id} --description "{safe_description}"'
 
-        full_cmd = f"{conda_exec} {' '.join(cmd)}"
         try:
-            result = subprocess.run(
-                full_cmd, shell=True, capture_output=True, text=True
-            )
+            # Use shell=True for conda run on Windows
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
             if result.returncode != 0:
                 return False, result.stderr or result.stdout
             return True, result.stdout

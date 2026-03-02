@@ -11,12 +11,30 @@ class ConfigManager:
     Centralized configuration manager for the Standalone RAG Knowledge Explorer.
     """
 
-    DEFAULT_LLM_CONFIG = {
-        "primary_model": "gemini-2.5-flash",
-        "preview_model": "gemini-3-flash-preview",
-        "fallback_model": "gemini-2.5-flash-lite",
-        "default_temperature": 0.0,
-    }
+    @staticmethod
+    def _get_factory_defaults():
+        """Load defaults from factory-level config/llm_config.json."""
+        try:
+            import sys
+
+            factory_root = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../../../")
+            )
+            if factory_root not in sys.path:
+                sys.path.insert(0, factory_root)
+            from scripts.ai.llm_config import get_llm_config
+
+            return get_llm_config()
+        except Exception:
+            # Fallback if factory config unavailable
+            return {
+                "primary_model": "gemini-2.5-flash",
+                "preview_model": "gemini-3-flash-preview",
+                "fallback_model": "gemini-2.5-flash-lite",
+                "default_temperature": 0.0,
+            }
+
+    DEFAULT_LLM_CONFIG = _get_factory_defaults.__func__()
 
     def __init__(self):
         # Path is relative to this file's location in core/

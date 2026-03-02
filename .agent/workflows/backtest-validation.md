@@ -1,7 +1,6 @@
 ---
-## Overview
-
-description: Strategy backtesting workflow with walk-forward analysis and Monte Carlo simulation. Covers data preparation, backtes...
+description: Strategy backtesting workflow with walk-forward analysis and Monte Carlo simulation. Covers data preparation, backtest execution...
+dashboard: true
 ---
 
 # Backtest Validation

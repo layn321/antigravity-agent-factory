@@ -1,0 +1,34 @@
+{
+    "monitored_kpis": [
+        {
+            "id": "INV_TURNOVER",
+            "method": "z-score",
+            "threshold": 2.5,
+            "min_samples": 10
+        },
+        {
+            "id": "BIN_DENSITY",
+            "method": "iqr",
+            "threshold": 1.5,
+            "min_samples": 5
+        },
+        {
+            "id": "DOCK_TO_STOCK",
+            "method": "static",
+            "max_val": 2.0,
+            "unit": "hours"
+        },
+        {
+            "id": "UPH",
+            "method": "z-score",
+            "threshold": 2.0,
+            "min_samples": 7
+        }
+    ],
+    "alerting": {
+        "channel": "plane",
+        "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+        "default_label": "BUG",
+        "priority": "high"
+    }
+}

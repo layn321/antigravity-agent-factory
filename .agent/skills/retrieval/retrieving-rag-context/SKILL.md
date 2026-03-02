@@ -60,6 +60,7 @@ Process for querying the Qdrant vector store to provide rich context for AI resp
   - Note: This streams raw JSON natively to standard out using UTF-8, making it safe and easy for you to parse.
 - `.agent/skills/retrieval/retrieving-rag-context/scripts/get_rag_toc.py`: Secondary CLI utility to directly fetch the Table of Contents of a specific book.
   - Usage: `python ".agent/skills/retrieval/retrieving-rag-context/scripts/get_rag_toc.py" "book title or keyword"`
+  - Note: This script calls `OptimizedRAG.get_toc()` directly — **no MCP SSE server required**. Falls back to MCP SSE if the direct import fails.
 
 ### References
 - `references/agentic-logic.md`: Breakdown of the Retrieve -> Grade -> Adapt decision tree.

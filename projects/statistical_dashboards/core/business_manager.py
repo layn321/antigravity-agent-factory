@@ -10,7 +10,15 @@ class BusinessManager:
 
     @staticmethod
     def calculate_inventory_turnover(total_sales, avg_inventory):
-        """Standard turnover ratio: Sales / Avg Inventory."""
+        """
+        @KPI:
+          id: INV_TURNOVER
+          name: Inventory Turnover Ratio
+          description: Measures how many times inventory is sold/replaced over a period.
+          formula: Total Sales / Average Inventory
+          unit: Ratio
+          owner: Warehouse Operations
+        """
         if avg_inventory == 0:
             return 0
         return total_sales / avg_inventory
@@ -18,8 +26,13 @@ class BusinessManager:
     @staticmethod
     def calculate_bin_density(inventory_df, total_bins):
         """
-        Calculates Bin Density (% of bins utilized).
-        In Random Stow, high density is good until it hits the 'Pick Threshold'.
+        @KPI:
+          id: BIN_DENSITY
+          name: Bin Utilization Density
+          description: Percentage of available bins containing at least one ASIN.
+          formula: (Unique Utilized Bins / Total Bin Count) * 100
+          unit: Percentage (%)
+          owner: Inventory Control
         """
         if total_bins <= 0:
             return 0
@@ -51,8 +64,13 @@ class BusinessManager:
     @staticmethod
     def calculate_dock_to_stock(df, dock_time_col, stow_time_col):
         """
-        Calculates Dock-to-Stock cycle time in hours.
-        Amazon Target: < 2 hours.
+        @KPI:
+          id: DOCK_TO_STOCK
+          name: Dock-to-Stock Cycle Time
+          description: Time elapsed from trailer arrival to first stow.
+          formula: Avg(Stow Time - Dock Time)
+          unit: Hours
+          owner: Inbound Operations
         """
         if dock_time_col not in df.columns or stow_time_col not in df.columns:
             return None
@@ -71,7 +89,13 @@ class BusinessManager:
     @staticmethod
     def calculate_uph(df, start_col, end_col, units_col):
         """
-        Calculates Units Per Hour (UPH / PPH).
+        @KPI:
+          id: UPH
+          name: Units Per Hour
+          description: Overall productivity rate for a processing station.
+          formula: Total Units / Total Process Hours
+          unit: Units/Hour
+          owner: Fulfillment Center Mgmt
         """
         if any(c not in df.columns for c in [start_col, end_col, units_col]):
             return None

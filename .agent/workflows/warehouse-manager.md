@@ -1,7 +1,6 @@
 ---
-## Overview
-
 description: Shift Management & SLA Compliance Workflow
+dashboard: true
 ---
 
 # Operations Manager Strategic Guide

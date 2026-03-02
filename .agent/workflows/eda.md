@@ -1,7 +1,6 @@
 ---
-## Overview
-
 description: Rapid Exploratory Data Analysis (EDA) of local or uploaded datasets.
+dashboard: true
 ---
 
 # Exploratory Data Analysis (EDA)
