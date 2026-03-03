@@ -304,7 +304,19 @@ When a commit fails:
 
 # Dry run (validate without committing)
 {PYTHON_PATH} {directories.scripts}/git/safe_commit.py --dry-run "feat(scope): test"
+### Robust Commit (Internal Factory Operations)
+Use this command for high-fidelity verification and automatic artifact synchronization.
+
+```powershell
+# Standard safe commit and push
+conda run -p D:\Anaconda\envs\cursor-factory python scripts/git/safe_commit.py "MESSAGE" --push
+
+# Skip verification (only for cosmetic artifact sync)
+conda run -p D:\Anaconda\envs\cursor-factory python scripts/git/safe_commit.py "MESSAGE" --skip-verify --push
 ```
+
+> [!IMPORTANT]
+> The message argument is **positional**. Do NOT use `-m`. Standard usage: `python safe_commit.py "Your message" --push`.
 
 **Why safe_commit.py?**
 - CANNOT be bypassed - pre-commit always runs first

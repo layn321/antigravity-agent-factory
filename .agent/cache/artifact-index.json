@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "updated_at": "2026-03-03T17:11:30.971619+00:00Z",
+  "updated_at": "2026-03-03T18:28:18.669077+00:00Z",
   "description": "Cached artifact counts for fast pre-commit validation. Auto-generated.",
   "artifacts": {
     "agents": {
@@ -9,7 +9,7 @@
         "core": 0,
         "pm": 0
       },
-      "last_modified": "2026-03-03T17:11:30.898959+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.585551+00:00Z"
     },
     "skills": {
       "count": 0,
@@ -17,23 +17,23 @@
         "core": 0,
         "pm": 0
       },
-      "last_modified": "2026-03-03T17:11:30.900014+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.587085+00:00Z"
     },
     "blueprints": {
       "count": 0,
-      "last_modified": "2026-03-03T17:11:30.900014+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.587085+00:00Z"
     },
     "knowledge": {
       "count": 0,
-      "last_modified": "2026-03-03T17:11:30.900014+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.587085+00:00Z"
     },
     "templates": {
       "count": 0,
-      "last_modified": "2026-03-03T17:11:30.900014+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.587622+00:00Z"
     },
     "patterns": {
       "count": 0,
-      "last_modified": "2026-03-03T17:11:30.900014+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.587622+00:00Z"
     },
     "tests": {
       "count": 1657,
@@ -44,15 +44,15 @@
         "guardian": 90,
         "memory": 45
       },
-      "last_modified": "2026-03-03T17:11:30.968545+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.667015+00:00Z"
     },
     "docs": {
       "count": 0,
-      "last_modified": "2026-03-03T17:11:30.968545+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.667015+00:00Z"
     },
     "diagrams": {
       "count": 20,
-      "last_modified": "2026-03-03T17:11:30.971619+00:00Z"
+      "last_modified": "2026-03-03T18:28:18.669077+00:00Z"
     }
   }
 }
