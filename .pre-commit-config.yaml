@@ -59,3 +59,11 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [pre-commit]
+
+      - id: validate-readme
+        name: Validate README Structure
+        entry: python scripts/validation/validate_readme_structure.py --update
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
