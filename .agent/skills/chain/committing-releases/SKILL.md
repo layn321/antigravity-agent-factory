@@ -221,10 +221,10 @@ The Factory uses **pre-commit hooks** to ensure all commits are "safe" by defaul
 - **Validates** JSON/YAML syntax
 - **Runs** linting and type checking
 
-**PREFERRED: Use `git commit` directly** - it automatically triggers the `safe_commit.py` logic via pre-commit hooks. This ensures all auto-syncs, syntax checks, and smoke tests are performed within the native git lifecycle.
+**MANDATORY: Use `git commit` directly** - It is the **Factory Standard**. Native `git commit` automatically triggers the `safe_commit.py` logic via pre-commit hooks, ensuring all auto-syncs, syntax checks, and smoke tests are performed within the native git lifecycle.
 
 ```powershell
-# Standard Factory workflow
+# Mandatory Factory standard
 git add .
 git commit -m "feat(scope): description"
 git push
