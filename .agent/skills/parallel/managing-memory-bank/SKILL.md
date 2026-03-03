@@ -24,7 +24,19 @@ This skill enforces the exact specifications of the **Memory System Integration 
 1. **Tier 0 Navigation**: The memory graph is ephemeral but incredibly fast. It is used to build rapid situational awareness (topography) before any search or execution begins.
 2. **Tier 4 Proposal**: The factory is mathematically forbidden from altering core system axioms without User Consent. You do not write directly to Tier 1 Permanent Memory; you generate a *Proposal* (Tier 4) for the user to review.
 
-## Phase 0: Context Engineering & Active Memory Building (MANDATORY)
+## When to Use
+- When initially orienting yourself to a new codebase, epic, or problem space (Phase 0).
+- When you reach the final phases of a task and need to propose architectural, methodological, or technical changes based on your learnings (Phase Final).
+- Use this skill as the mandatory "bookends" (start and end) of any formal development task according to the AGENT-50 Factory rules.
+
+## Prerequisites
+- The `memory` MCP server must be active and configured via your tools.
+
+## Process
+
+The process of managing the memory bank requires careful mapping of the existing topography before extracting learning or creating proposals.
+
+### Phase 0: Context Engineering & Active Memory Building (MANDATORY)
 **Before** deep-diving into codebases or initiating web searches, you MUST establish structural topography.
 
 ### Step 1: Broad Mapping
@@ -50,7 +62,7 @@ open_nodes(names=["<discovered entity 1>", "<discovered entity 2>"])
 
 ---
 
-## Phase Final: Memory Induction & Consent Loop
+### Phase Final: Memory Induction & Consent Loop
 At the end of a session, if you detect a "Significant Pattern" (a new architectural decision, a recurring bug fix, a new coding standard), you MUST propose it.
 
 ### Step 1: Rejection Similarity Check
@@ -82,3 +94,8 @@ If you define a new knowledge JSON, you MUST immediately "Hydrate" the Active Co
 create_entities(entities=[{"name": "AsyncPydanticRule", "entityType": "Layer4Pattern", "observations": ["Always use structured parsers for outputs"]}])
 create_relations(relations=[{"from": "FastAPIDevelopment", "to": "AsyncPydanticRule", "relationType": "enforces"}])
 ```
+
+## Best Practices
+- Always query the Memory MCP first to build situational awareness (topography) before any search or execution begins.
+- Never hallucinate context boundaries if an entity is missing in the memory bank.
+- Prioritize Tier 3 Episodic Context to avoid repetitive patterns in your solutions.

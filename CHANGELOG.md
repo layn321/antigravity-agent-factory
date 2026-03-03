@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Plane Issue Updates**: Upgraded `solution_comment.html.j2` to distinctively parse and render the newly mandatory `architectural_decisions` and `evolution` arrays natively onto the cloud Plane platform.
 - **Skill Instructions**: Greatly expanded `managing-plane-tasks/SKILL.md` with explicit templates grading "Poor" vs "Excellent" technical summaries.
 
+### Fixed
+- **Skill Validation (AGENT-52)**: Refactored `managing-memory-bank` to include mandatory markdown sections to fix CI validation tests. Enforced strict asset comprehensiveness and mandatory Epic assignment in `managing-plane-tasks`.
+
 ## [1.5.1] - 2026-03-03
 
 ### Added

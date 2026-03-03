@@ -130,6 +130,12 @@ Before calling `create_task.py`, resolve ALL of the following UUIDs via MCP:
 #### Step A: Generate and Create Task via Jinja Template
 Create a `task.json` definition file on disk. Include the core requirements, factory assets (the task schema), AND the execution context.
 
+> [!IMPORTANT]
+> **Strict Asset Comprehensiveness Rule:** You MUST ALWAYS be absolutely comprehensive when filling out `workflows`, `agents`, `skills`, and `templates` in the `task.json`. Do not just include 1 or 2 skills if 5 are relevant. If a template is used, list it. The visual representation in Plane acts as the definitive routing map for agents, so it must be exhaustive.
+
+> [!IMPORTANT]
+> **Mandatory Epic Rule:** You MUST ALWAYS provide a `parent` (Epic) UUID. No task should ever be orphaned in the backlog without an Epic. If you do not know the Epic, scan existing tickets in the same domain to find the UUID.
+
 The execution context fields (`start_date`, `target_date`, `estimate_point`, `parent`) are sent directly to the Plane API so they appear natively in the UI.
 
 **Example `task.json`:**
