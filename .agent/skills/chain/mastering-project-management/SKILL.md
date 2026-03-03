@@ -32,7 +32,7 @@ Follow these procedures to implement the capability:
     - `Won't`: Deferred.
 
 ### Procedure 2: Sprint Orchestration (Flow)
-1.  **Capacity Gate**: Before starting a sprint, run `pm.calculateVelocity()` and verify against the proposed total points.
+1.  **Capacity Gate**: Before starting a sprint, manually verify the proposed total points against the team's historical velocity (visible in Plane insights).
 2.  **State Transitions**: Enforce strict flow: `To Do` -> `In Progress` -> `In Review` -> `Verification` -> `Done`.
 3.  **Blocker Management**: Any item in `In Progress` for >40% of sprint length must be flagged as `AT_RISK` and requires a mitigation comment.
 
@@ -46,7 +46,7 @@ Follow these procedures to implement the capability:
 | Symptom | Probable Cause | Recovery Operation |
 | :--- | :--- | :--- |
 | **Silent Sprint Fail** | Scope creep or hidden blockers. | Run a "Sprint Audit" to compare mid-sprint state vs. initial commitment; move non-critical items back to backlog. |
-| **Metric Inaccuracy** | Stale status in the PM backend. | Trigger a "Status Refresh" nudge to all active agents; run `pm.syncFromBackend()`. |
+| **Metric Inaccuracy** | Stale status in the PM backend. | Trigger a "Status Refresh" nudge to all active agents; manually audit item statuses in Plane to ensure alignment with reality. |
 | **Story Rejection** | Vague ACs leading to incorrect implementation. | Reject the story; conduct a "Hard Refinement" session to redefine ACs with the developer agent. |
 
 ## Prerequisites
@@ -60,6 +60,7 @@ Follow these procedures to implement the capability:
 | Search Items | `mcp_plane_search_work_items` |
 
 ## Label Governance (Source of Truth)
+
 
 Every work item MUST be tagged with at least one label from this synchronized set. For **Remote Plane** operations, always use the `mcp_plane` tools (`create_label`, `update_label`, `list_labels`) to maintain this synchronization. Do NOT use local management scripts for remote label administration.
 
@@ -97,36 +98,11 @@ To ensure excellence, use these copy-pasteable patterns for common scenarios.
   "name": "FEATURE: Implement OIDC Authentication Support",
   "priority": "high",
   "description_html": "<div>Develop and integrate OIDC auth flow...</div>",
-  "labels": ["5248c180-2056-495c-859c-82747b5d1d52", "5b807a8c-09c4-49d5-ac0d-290568780564"] // FEATURE, CORE
+  "labels": ["5248c180-2056-495c-859c-82747b5d1d52", "5b807a8c-09c4-49d5-ac0d-290568780564"], // FEATURE, CORE
+  "scripts": ["scripts/validation/sync_manifest_versions.py"]
 }
 ```
 
-### 2. Updating Status & Adding Comments
-```json
-// Tool: mcp_plane_update_work_item
-{
-  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
-  "work_item_id": "AGENT-42-UUID",
-  "state": "8e155185-58ad-404b-8458-6a7c9edbf09b" // To Do
-}
-
-// Tool: mcp_plane_create_work_item_comment
-{
-  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
-  "work_item_id": "AGENT-42-UUID",
-  "comment_html": "<div>Verification successful. Moving to Production.</div>"
-}
-```
-
-### 3. Batch Retrieval for Reporting
-```json
-// Tool: mcp_plane_list_work_items
-{
-  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
-  "expand": "assignees,labels,state",
-  "order_by": "-updated_at"
-}
-```
 
 ## Troubleshooting & Fail-State
 | Symptom | Probable Cause | Recovery Operation |

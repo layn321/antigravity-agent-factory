@@ -22,13 +22,17 @@ import sys
 # Directories to scan for CLI scripts
 SCAN_DIRS = [
     "scripts/ai/rag",
-    "scripts/pms",
+    "scripts/maintenance",
+    "scripts/validation",
+    "scripts/git",
 ]
 
 # Scripts known to have --help  (basename → entity name mapping)
 KNOWN_SCRIPTS = {
     "rag_cli.py": "RAG_CLI_Commands",
-    "manager.py": "PMS_CLI_Commands",
+    "sync_script_registry.py": "Maintenance_Registry_Sync",
+    "sync_manifest_versions.py": "Version_Sync_Utility",
+    "safe_commit.py": "Safe_Commit_Wrapper",
 }
 
 CONDA_PREFIX = r"D:\Anaconda\envs\cursor-factory"

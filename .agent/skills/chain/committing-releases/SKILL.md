@@ -213,12 +213,20 @@ git commit -m "feat(scope): description`n`nBody paragraph"
 # AVOID: Heredoc syntax (Bash only, fails in PowerShell)
 ```
 
-### Using --no-verify (CAUTION)
+### Automated Commit Workflow (Recommended)
 
-**PREFERRED: Use `safe_commit.py` instead** - it handles everything correctly:
+The Factory uses **pre-commit hooks** to ensure all commits are "safe" by default. When you run `git commit`, the system automatically:
+- **Auto-syncs** version strings
+- **Auto-syncs** all artifacts
+- **Validates** JSON/YAML syntax
+- **Runs** linting and type checking
+
+**PREFERRED: Use `git commit` directly** - it triggers the mandatory safety checks.
+
+**FULL VERIFICATION: Use `safe_commit.py`** - use this for major releases to include **smoke tests** and automatic pushing:
 
 ```powershell
-# safe_commit.py automatically runs pre-commit, then commits with --no-verify
+# safe_commit.py runs the full Robust Commit Workflow (RCW) + Smoke Tests
 {PYTHON_PATH} {directories.scripts}/git/safe_commit.py "feat(scope): description" --push
 ```
 
@@ -310,8 +318,9 @@ When a commit fails:
 # 1. Stage all changes
 git add -A
 
-# 2. Run unified pre-commit (auto-syncs and auto-stages)
-{PYTHON_PATH} {directories.scripts}/git/pre_commit_runner.py --sync
+# 2. Commit directly (Safe Commit Integration)
+# This will automatically trigger the pre-commit runner for sync and validation
+git commit -m "feat(scope): description"
 
 # 3. If changelog warning appears, review suggestions
 {PYTHON_PATH} {directories.scripts}/docs/changelog_helper.py --suggest

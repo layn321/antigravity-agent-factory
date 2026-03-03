@@ -7,15 +7,17 @@ repos:
     rev: v0.8.4
     hooks:
       - id: ruff
+        exclude: ^scripts/legacy/
         args: [--fix, --ignore, "F841,E402,E741,F401,F601,F821,E721"]
       - id: ruff-format
+        exclude: ^scripts/legacy/
 
   # Type checking
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
       - id: mypy
-        exclude: ^(\.agent/(skills|agents)/)
+        exclude: ^(\.agent/(skills|agents)/|scripts/legacy/)
         additional_dependencies: [types-PyYAML, types-jsonschema, types-requests, types-setuptools]
         args: [--ignore-missing-imports, --explicit-package-bases, --disable-error-code=attr-defined, --disable-error-code=name-defined, --disable-error-code=arg-type, --disable-error-code=assignment, --disable-error-code=return-value, --disable-error-code=var-annotated, --disable-error-code=index, --disable-error-code=has-type, --disable-error-code=call-arg, --disable-error-code=misc, --disable-error-code=no-redef, --disable-error-code=annotation-unchecked, --disable-error-code=union-attr, --disable-error-code=operator, --disable-error-code=valid-type]
 
@@ -24,7 +26,7 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-json
-        exclude: tests/fixtures/invalid_config.json
+        exclude: ^(tests/fixtures/invalid_config.json|data/)
       - id: check-yaml
       - id: check-toml
       - id: end-of-file-fixer

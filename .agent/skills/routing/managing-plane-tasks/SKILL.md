@@ -1,8 +1,8 @@
 ---
 name: managing-plane-tasks
-description: Remote management of Plane PMS issues and states using the Plane MCP server.
+description: Remote management of Plane PMS issues and states using the Plane MCP server, with formal task definition schema and memory MCP integration.
 type: skill
-version: 2.0.0
+version: 3.0.0
 category: routing
 agents:
 - python-ai-specialist
@@ -16,32 +16,58 @@ tools:
 - mcp_plane_create_work_item
 - mcp_plane_update_work_item
 - mcp_plane_retrieve_work_item
+- mcp_plane_retrieve_work_item_property
+- mcp_plane_update_work_item_property
 - mcp_plane_list_labels
 - mcp_plane_create_label
 - mcp_plane_list_states
 - mcp_plane_list_cycles
 - mcp_plane_list_modules
 - mcp_plane_get_me
+- mcp_plane_create_work_item_comment
+- mcp_plane_add_work_items_to_module
+- mcp_plane_add_work_items_to_cycle
+- mcp_plane_search_work_items
+- mcp_memory_read_graph
+- mcp_memory_open_nodes
+- mcp_memory_search_nodes
 related_skills:
 - orchestrating-mcp
 - mastering-project-management
+references:
+- references/task_definition_schema.json
+- references/task_definition_guide.md
 templates:
 - ["none"]
 ---
 
 # Remote Plane Management (MCP)
 
-This skill enables agents to manage projects, issues, and states in a remote Plane PMS instance using the **Plane MCP server**. This is the primary and recommended method for all project management operations, replacing the legacy local management scripts.
+This skill enables agents to manage projects, issues, and states in a remote Plane PMS instance using the **Plane MCP server**. Every task created follows a **formal task definition schema** that links the work item to specific factory assets — workflows, agents, skills, scripts, knowledge, patterns, templates, blueprints, and tests.
+
+> [!NOTE]
+> Every task is a **hypothesis** about which factory assets best solve the defined problem. The schema formalizes context engineering — giving agents immediate, situation-adequate consciousness of available tools, techniques, and methodologies. See [Task Definition Guide](file:///d:/Users/wpoga/Documents/Python%20Scripts/antigravity-agent-factory/.agent/skills/routing/managing-plane-tasks/references/task_definition_guide.md) for the full philosophy.
 
 ## When to Use
 - When you need to create, update, or track tasks in the hosted Plane instance.
 - For all standard project lifecycle automation (refinement, updates, reporting).
-- When a pure, standardized, and machine-readable interface is required for agentic workflows.
+- When a pure, standardized, and- **Automation**: Use `create_task.py` to maintain visual consistency across all issues.
+
+## Project State Mapping (UUIDs)
+
+| State | UUID |
+| :--- | :--- |
+| **Backlog** | `294ddb00-19ce-4ffe-9eac-2fd4e998d7f8` |
+| **Todo** | `8e155185-58ad-404b-8458-6a7c9edbf09b` |
+| **In Progress** | `d89aabd2-46d4-4f46-8ce4-eb49e06cac03` |
+| **Done** | `ef4b2395-3edb-41e9-adcd-7ec77d534f0f` |
+| **Cancelled** | `0723fa1c-6935-4661-a873-f5295203e58c` |
 
 ## Prerequisites
 - **Plane MCP Server**: Must be active and configured in `mcp_config.json`.
-- **Project Context**: Project ID (e.g., `e71eb003-87d4-4b0c-a765-a044ac5affbe`) and Identifier (e.g., `AGENT`) must be provided.
-- **Label Synchronization**: Always adhere to the project's global [Label Governance](file:///d:/Users/wpoga/Documents/Python%20Scripts/antigravity-agent-factory/.agent/skills/chain/mastering-project-management/SKILL.md#label-governance-source-of-truth).
+- **Memory MCP Server**: Must be active for knowledge graph queries during task planning.
+- **Project Context**: Project ID `e71eb003-87d4-4b0c-a765-a044ac5affbe` | Identifier `AGENT`.
+- **Label Synchronization**: Always adhere to the project's global [Label Governance](#label-governance-source-of-truth).
 
 ## Process
 
@@ -72,58 +98,94 @@ Retrieve the full details of a specific item, including description and comments
 
 ### 3. Professional Task Creation (Mandatory Workflow)
 
-A work item is **NOT considered created** until ALL mandatory properties are set. Agents MUST execute Steps A through D in sequence. **No exceptions.**
+A work item is **NOT considered created** until ALL mandatory steps (A through C) are complete. **No exceptions.**
 
 > [!CAUTION]
-> Creating a work item without start_date, target_date, estimate, labels, module, and cycle is a governance violation. Always complete the full workflow.
+> Creating a work item without start_date, target_date, estimate, labels, module, cycle, and task schema is a governance violation. Always complete the full workflow.
+
+#### Step 0: Context Engineering (Memory MCP)
+
+**Before defining a task**, query the memory MCP knowledge graph to build situational awareness. This grounds your task hypothesis in the factory's actual capabilities.
+
+```json
+// Tool: mcp_memory_open_nodes — Start with system orientation
+{ "names": ["System_Consciousness"] }
+```
+
+Use this information to **form your hypothesis**: which workflows, agents, skills, scripts, knowledge, and patterns will best solve the problem?
 
 #### Pre-Flight Checklist
-Before calling `mcp_plane_create_work_item`, resolve ALL of the following:
+Before calling `create_task.py`, resolve ALL of the following UUIDs via MCP:
 
 | Property | How to Resolve | Required |
 | :--- | :--- | :---: |
-| `labels` | `mcp_plane_list_labels` → pick 1+ label UUIDs | ✅ |
-| `assignees` | `mcp_plane_get_me` → use your own UUID | ✅ |
-| `state` | `mcp_plane_list_states` → pick initial state (usually Todo) | ✅ |
-| `start_date` | ISO 8601 date (e.g., `"2026-03-02"`) | ✅ |
-| `target_date` | ISO 8601 date (e.g., `"2026-03-08"`) | ✅ |
-| `estimate_point` | Use project estimate scale UUID | ✅ |
-| `parent` | If item belongs to an Epic, set the Epic's work item UUID | ⚠️ If applicable |
-| Module | Resolved in Step B | ✅ |
-| Cycle | Resolved in Step C | ✅ |
+| `labels` | `mcp_plane_list_labels` → copy the uppercase names | ✅ |
+| `start_date` / `target_date` | Determine accurate ISO 8601 dates (e.g., `"2026-03-03"`) | ✅ |
+| `estimate_point` | Use Fibonacci scale UUID from [Estimate Points](#estimate-points-fibonacci-scale) | ✅ |
+| `parent` | If item belongs to an Epic, use UUID from [Known Active Epics](#known-active-epics) | ⚠️ If applicable |
+| `module_id` | Use UUID from [Known Active Modules](#known-active-modules) | ✅ |
+| `cycle_id` | `mcp_plane_list_cycles` → find the currently active sprint | ✅ |
 
-#### Step A: Full Issue Creation
-Create the issue with **all** core metadata in a single call.
+#### Step A: Generate and Create Task via Jinja Template
+Create a `task.json` definition file on disk. Include the core requirements, factory assets (the task schema), AND the execution context.
 
+The execution context fields (`start_date`, `target_date`, `estimate_point`, `parent`) are sent directly to the Plane API so they appear natively in the UI.
+
+**Example `task.json`:**
 ```json
-// Tool: mcp_plane_create_work_item
 {
-  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
-  "name": "FEATURE: Implement Multi-Agent 'Analyst Society' for Dashboards",
-  "description_html": "<div>Develop a LangGraph-based multi-agent coordination flow...</div>",
+  "name": "FEATURE: Implement Analyst Society",
+  "type": "feature",
   "priority": "high",
-  "state": "8e155185-58ad-404b-8458-6a7c9edbf09b",
-  "assignees": ["e559df98-fc43-4578-a3e0-3b77e3b35bc4"],
-  "labels": ["57a1da51-90c6-46db-9340-6c88ac9b1ed0"],
-  "start_date": "2026-03-02",
-  "target_date": "2026-03-08",
-  "estimate_point": "a1f66f54-0f4b-4ca1-9979-a34087b4594a",
-  "parent": "EPIC-UUID-IF-APPLICABLE"
+  "labels": ["FEATURE", "CORE"],
+
+  "start_date": "2026-03-03",
+  "target_date": "2026-03-09",
+  "estimate_point": "bd9e29aa-b4e8-4525-b16d-893c8324f7c7",
+  "parent": "e18df34b-2da0-46a7-bca2-594ca70757c0",
+
+  "requirements": ["Must support nested loops"],
+  "acceptance_criteria": ["Nested loops work to depth 3"],
+  "workflows": ["feature-development"],
+  "agents": ["python-ai-specialist"],
+  "skills": ["managing-plane-tasks"],
+  "tests": [
+    { "type": "unit", "script": "test_loops.py", "expected": "Pass" }
+  ]
 }
 ```
 
-#### Step B: Mandatory Module Association (exactly 1 module)
+Run the creation script to render the HTML and apply the task natively:
+```bash
+conda run -p D:\Anaconda\envs\cursor-factory python .agent/skills/routing/managing-plane-tasks/scripts/create_task.py --json task.json
+```
+*Note: The script outputs the new `UUID` of the created task. You will need this for Steps B and C.*
+
+#### Step B: Mandatory Module Association (at least 1 module)
+
+Use the Plane MCP server tools to assign the created task to its context module.
 
 ```json
 // Tool: mcp_plane_add_work_items_to_module
 {
   "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
-  "module_id": "a4123817-7b59-474a-b4d2-7d0fcb3d3fc9",
+  "module_id": "9a86f2c8-1ffe-448c-ac2e-82196fba4afa",
   "issue_ids": ["NEW-ISSUE-UUID"]
 }
 ```
 
+<a name="known-active-modules"></a>
+**Known Active Modules:**
+| Module Name | UUID |
+| :--- | :--- |
+| **agent system** | `9a86f2c8-1ffe-448c-ac2e-82196fba4afa` |
+| **statistical dashboard** | `a4123817-7b59-474a-b4d2-7d0fcb3d3fc9` |
+| **plane integration** | `d2ea0dc7-0b89-48c7-b902-26e46a35d6ba` |
+| **rag system** | `4071283a-7135-4ef8-a61b-020cdef79a02` |
+
 #### Step C: Mandatory Cycle Association
+
+Use the Plane MCP server tools to assign the created task to the active cycle.
 
 ```json
 // Tool: mcp_plane_add_work_items_to_cycle
@@ -134,24 +196,8 @@ Create the issue with **all** core metadata in a single call.
 }
 ```
 
-#### Step D: Epic Linking (When Applicable)
-If the work item is a sub-task of a larger Epic, set the `parent` field during Step A. If the Epic UUID was not known at creation time, update it immediately:
-
-**Known Active Epics:**
-| Epic Name | UUID (`parent` field) |
-| :--- | :--- |
-| **Agent System** | `e18df34b-2da0-46a7-bca2-594ca70757c0` |
-| **Statistical Dashboard** | `600ac6d6-fc68-45a2-b207-322f6dfe70aa` |
-| **RAG System** | `867a5341-0b55-4862-9b01-bee535bf29ed` |
-
-```json
-// Tool: mcp_plane_update_work_item
-{
-  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
-  "work_item_id": "NEW-ISSUE-UUID",
-  "parent": "EPIC-PARENT-UUID"
-}
-```
+> [!TIP]
+> Always use `mcp_plane_list_cycles` to find the currently active sprint. Do not hardcode cycle UUIDs — they change every sprint.
 
 ### 4. Updating Status & Metadata
 Move issues through the lifecycle by updating the `state` or adding professional progress reports.
@@ -161,9 +207,45 @@ Move issues through the lifecycle by updating the `state` or adding professional
 {
   "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
   "work_item_id": "ITEM-UUID",
-  "state": "ef4b2395-3edb-41e9-adcd-7ec77d534f0f" // Done UUID
+  "state": "ef4b2395-3edb-41e9-adcd-7ec77d534f0f"
 }
 ```
+
+**Known States:**
+| State | UUID | Group |
+| :--- | :--- | :--- |
+| **Backlog** | `294ddb00-19ce-4ffe-9eac-2fd4e998d7f8` | backlog |
+| **Todo** | `8e155185-58ad-404b-8458-6a7c9edbf09b` | unstarted |
+| **In Progress** | `d89aabd2-46d4-4f46-8ce4-eb49e06cac03` | started |
+| **Done** | `ef4b2395-3edb-41e9-adcd-7ec77d534f0f` | completed |
+| **Cancelled** | `0723fa1c-6935-4661-a873-f5295203e58c` | cancelled |
+
+## Estimate Points (Fibonacci Scale)
+
+The project uses Fibonacci-based story point estimation. **No MCP tool exists to list estimate point UUIDs** — always reference this table.
+
+| Points | UUID (`estimate_point`) | Status |
+| :---: | :--- | :---: |
+| 1 | `a1f66f54-0f4b-4ca1-9979-a34087b4594a` | ✅ Verified |
+| 2 | *(verify in Plane UI and update)* | ❓ |
+| 3 | `3b88eecb-e4ad-4d67-b557-adbeb97e590d` | ⚠️ Needs verification |
+| 5 | `bd9e29aa-b4e8-4525-b16d-893c8324f7c7` | ✅ Verified |
+| 8 | `8399793b-12e0-4d3d-9d9c-3cb43c1a51b4` | ⚠️ Needs verification |
+| 13 | *(verify in Plane UI and update)* | ❓ |
+| 21 | *(verify in Plane UI and update)* | ❓ |
+
+> [!WARNING]
+> The estimate UUIDs above were discovered by inspecting existing work items. Verify unconfirmed entries from the Plane UI and update this table.
+
+## Known Active Epics
+
+Epics are parent work items that group related tasks. Set the `parent` field to the appropriate epic UUID.
+
+| Epic Name | UUID (`parent` field) |
+| :--- | :--- |
+| **Agent System** | `e18df34b-2da0-46a7-bca2-594ca70757c0` |
+| **Statistical Dashboard** | `600ac6d6-fc68-45a2-b207-322f6dfe70aa` |
+| **RAG System** | `867a5341-0b55-4862-9b01-bee535bf29ed` |
 
 ## Label Governance (Source of Truth)
 
@@ -174,20 +256,39 @@ All labeling must strictly follow the synchronized set:
 > [!IMPORTANT]
 > Use `mcp_plane_list_labels` to verify available labels and their IDs before creating or updating work items.
 
+## Knowledge Layer Synchronization
+
+The factory's knowledge layer has two synchronized representations that **MUST be kept in sync**:
+
+| Source | Location | Access |
+| :--- | :--- | :--- |
+| **Knowledge Files** | `.agent/knowledge/*.json` | File system — durable ground truth |
+| **Memory MCP Graph** | `mcp_memory_*` tools | Live operational index — fast entity queries |
+
+When adding, updating, or referencing knowledge in a task:
+1. Reference both the knowledge file name AND the corresponding memory MCP entity
+2. After completing a task, update the memory MCP graph with new learnings
+3. Ensure any new knowledge files are also reflected as memory MCP entities
+
 ## Professional Documentation Standards
 When closing issues, provide a detailed summary of the accomplishment:
 - **Technical Summary**: High-level problem and solution.
 - **Files Affected**: Key modules modified.
 - **Verification Proof**: Test results and coverage details.
 - **Future Prevention**: Added guards or scripts.
+- **Factory Evolution**: New skills, workflows, agents, or knowledge created.
 
 ## Best Practices
-- **Always resolve metadata first**: Use `mcp_plane_list_labels`, `mcp_plane_list_states`, `mcp_plane_get_me` before creating work items to ensure valid UUIDs.
-- **Complete the full workflow**: A work item is not finished until it has labels, assignee, state, dates, module, and cycle attached (Steps A–D).
-- **Use expand for context**: When listing or retrieving items, use `expand: "labels,state,assignees"` to get full metadata in one call.
-- **Never hardcode UUIDs**: Always query for the current label/state/cycle IDs; they may change between environments.
+- **Memory-First**: Always query memory MCP (Step 0) before creating tasks to build situational awareness.
+- **Hypothesis-Driven**: Treat each task as a hypothesis — declare which assets solve the problem, then validate with tests.
+- **Always resolve metadata first**: Use `mcp_plane_list_labels`, `mcp_plane_list_states`, `mcp_plane_get_me` before creating work items.
+- **Complete all five steps**: A work item is not finished until Steps A–E are complete (creation, module, cycle, epic, schema).
+- **Use expand for context**: When listing or retrieving items, use `expand: "labels,state,assignees"` for full metadata.
+- **Never hardcode cycle UUIDs**: Always query `mcp_plane_list_cycles` — cycles change every sprint.
 - **Document closures professionally**: When marking items Done, add a comment with technical summary, files affected, and verification proof.
-- **Respect label governance**: Only use labels from the synchronized set. Run `mcp_plane_list_labels` to verify before tagging.
+- **Respect label governance**: Only use labels from the synchronized set.
+- **Create missing assets**: If a task needs a skill, agent, or workflow that doesn't exist, use the `[NEW]` prefix and build it during execution.
+- **Evolve the knowledge graph**: After completing tasks, update both knowledge files and memory MCP entities with learnings.
 
 ---
-*Operational maturity is the foundation of high-velocity agency.*
+*Context engineering is the foundation of intelligent agency. Every task refines the system's consciousness.*

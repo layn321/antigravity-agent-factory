@@ -1,0 +1,5 @@
+bin_id,sku,quantity,aisle,rack_level,last_cycle_count_date,is_fast_mover
+B-A1-L1,AMZ-BK-001,45,A1,1,2026-02-20,True
+B-A1-L2,AMZ-EL-042,18,A1,2,2026-02-21,True
+B-B4-L5,AMZ-HG-112,98,B4,5,2026-02-15,False
+B-C2-L3,AMZ-X-007,12,C2,3,2026-02-22,False

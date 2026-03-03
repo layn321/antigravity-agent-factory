@@ -13,7 +13,7 @@ templates:
 tools:
 - none
 type: skill
-version: 1.0.0
+version: 2.0.0
 ---
 # Pm Configuration
 
@@ -233,11 +233,11 @@ Based on all collected information, generate the PM configuration:
       "type": "{SELECTED_BACKEND}",
       "credentials": {
         "required": true,
-        "location": ".env.pm",
-        "instructions": "Add {BACKEND}_API_KEY and {BACKEND}_PROJECT_ID"
+        "location": "MCP Server Configuration",
+        "instructions": "Add PLANE_API_TOKEN to the Plane MCP server configuration"
       },
-      "projectId": "{PROJECT_ID}",
-      "workspace": "{WORKSPACE_NAME}"
+      "projectId": "e71eb003-87d4-4b0c-a765-a044ac5affbe",
+      "workspace": "antigravity"
     },
     "methodology": {
       "type": "{SELECTED_METHODOLOGY}",
@@ -421,26 +421,21 @@ Save the configuration and provide guidance:
 
 **Next Steps:**
 
-1. **Set up backend credentials** (if using external backend):
-   - Copy .env.pm.example to .env.pm
-   - Add your {BACKEND} API keys and project IDs
-   - Test connection: python cli/factory_cli.py --test-pm-connection
+1. **Set up backend credentials** (via MCP Server):
+   - Ensure the Plane MCP server is installed and running.
+   - Add your `PLANE_API_TOKEN` to the server environment.
+   - Test connection: Call `mcp_plane_get_me`.
 
-2. **Review workflow triggers**:
-   - Your workflows will trigger on: {TRIGGER_LIST}
-   - Test by creating a {TRIGGER_EXAMPLE}
+2. **Review project identifiers**:
+   - Project ID: `e71eb003-87d4-4b0c-a765-a044ac5affbe`
+   - Identifier: `AGENT`
 
-3. **Configure MCP servers** (if needed):
-   - {MCP_SETUP_INSTRUCTIONS}
+3. **Configure MCP servers**:
+   - Use the `plane` MCP server for all project management operations.
 
-4. **Set up metrics dashboard**:
-   - Access dashboard at: {DASHBOARD_URL}
-   - Configure alerts for: {METRIC_ALERTS}
-
-5. **Team onboarding**:
-   - Share pm-config.json with your team
-   - Walk through the methodology: {METHODOLOGY_SUMMARY}
-   - Set up first {SPRINT/BACKLOG/EXPERIMENT} together
+4. **Team onboarding**:
+   - Share the workspace and project ID with your team.
+   - Set up first sprint via `mcp_plane_create_cycle`.
 
 Remember: PM should enhance, not burden. If something feels wrong,
 let's adjust it together.
@@ -673,17 +668,14 @@ Which feels right?"
 ## CLI Quick Reference
 
 ```bash
-# Test PM backend connection
-python cli/factory_cli.py --test-pm-connection
+# Test Plane connection (via MCP)
+# Use tool: mcp_plane_get_me
 
-# Generate PM configuration interactively
-python cli/factory_cli.py --configure-pm
+# List project states
+# Use tool: mcp_plane_list_states (project_id required)
 
-# Validate PM configuration
-python cli/factory_cli.py --validate-pm-config pm-config.json
-
-# Sync workflows with PM backend
-python cli/factory_cli.py --sync-pm-workflows
+# Create a new task
+# Use tool: mcp_plane_create_work_item
 ```
 
 ## References
@@ -716,7 +708,7 @@ To minimize API calls and ensure consistent state transitions, use the following
 
 ### Best Practices
 - **Avoid Polling**: Do not call `list_states` repeatedly. Use the mapping above.
-- **Explicit Sequence**: Always use `AGENT-{sequence_id}` for communication but pass only `{sequence_id}` to internal script functions.
+- **Explicit Sequence**: Always use `AGENT-{sequence_id}` for communication.
 - **Workflow Closure**: Every transition to a verified state MUST be followed by a Plane status update to `Done`.
 
 ## Verification

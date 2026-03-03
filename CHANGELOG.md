@@ -5,7 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1] - 2026-03-03
+
+### Added
+- **V8 Template Migration**: Migrated all backlog and todo items to the whitespace-optimized Jinja V8 template.
+- **MCP Script Discovery**: Enhanced `sync_script_registry.py` for automated CLI introspection.
+
+### Changed
+- **PMS Architecture Transition**: Finalized move to Cloud Plane + MCP architecture.
+- **Documentation**: Overhauled `docs/pms/plane_integration_guide.md` to reflect native MCP tool usage.
+
+### Removed
+- **Legacy PMS Scripts**: Deleted deprecated `scripts/pms/manager.py`, `test_plane_conn.py`, `dump_settings.py`, and `migrate_legacy_data.py`.
+
 ## [1.5.0] - 2026-03-02
+
 
 ### Added
 - **Central LLM Configuration (AGENT-27)**: Implemented machine-specific `config/llm_config.json` with shared Python loader (`scripts/ai/llm_config.py`), eliminating 16 hardcoded model strings across 12 files.

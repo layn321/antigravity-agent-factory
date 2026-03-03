@@ -139,14 +139,14 @@ The original integration used a **Native-Direct** pattern, interacting directly 
 | `State mismatch` | Case/naming mismatch. | Match exactly with UI values. |
 | Celery "Unregistered Task" | Worker needs fresh registration. | `docker restart plane-worker plane-beat-worker`. |
 
-### Legacy Scripts (Deprecated)
+### Legacy Scripts (Deleted)
 
-| Script | Purpose | Replacement |
+| Script | Purpose | Status |
 | :--- | :--- | :--- |
-| `scripts/pms/manager.py` | CLI for issue CRUD via Django ORM | `mcp_plane_*` tools |
-| `scripts/pms/test_plane_conn.py` | API connection test | `mcp_plane_get_me` |
-| `scripts/pms/dump_settings.py` | Dump Django settings | N/A (cloud-managed) |
-| `scripts/pms/migrate_legacy_data.py` | SQLite→Plane migration | One-time use, completed |
+| `scripts/pms/manager.py` | CLI for issue CRUD via Django ORM | **DELETED** |
+| `scripts/pms/test_plane_conn.py` | API connection test | **DELETED** |
+| `scripts/pms/dump_settings.py` | Dump Django settings | **DELETED** |
+| `scripts/pms/migrate_legacy_data.py` | SQLite→Plane migration | **DELETED** |
 
 ---
 
@@ -158,7 +158,7 @@ The migration from local to cloud Plane occurred as part of the v1.5.x release c
 2. **Interface**: The `manager.py` script (subprocess → `docker exec` → Django ORM) was replaced by the Plane MCP server providing native `mcp_plane_*` tool calls.
 3. **Authentication**: Moved from implicit container-level Django auth to API token-based auth configured in the MCP server config.
 4. **Skill Updates**: The `managing-plane-tasks` skill (v2.0.0) was rewritten to use MCP tools exclusively. The `mastering-project-management` skill was updated to reference MCP operations.
-5. **Legacy scripts**: The `scripts/pms/` directory is retained for reference but all scripts are deprecated.
+5. **Final Cleanup**: As of v1.5.0, the `scripts/pms/` directory and all legacy property-based verification scripts have been **removed** from the repository to prevent architectural drift.
 
 ---
 
