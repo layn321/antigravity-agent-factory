@@ -45,6 +45,7 @@ venv/
 # Logs
 46: *.log
 47: logs/
+generation_debug.log
 
 # Temporary files
 50: *.tmp
