@@ -192,14 +192,10 @@ def run_tests():
 
         if result.returncode != 0:
             print(f"Pytest failed with exit code {result.returncode}")
+            if result.stdout:
+                print(f"Pytest Stdout:\n{result.stdout}")
             if result.stderr:
                 print(f"Pytest Stderr:\n{result.stderr}")
-            if not summary_line and result.stdout:
-                # If no summary line found, print the last few lines of stdout
-                print(
-                    "Last 10 lines of Pytest Stdout:\n"
-                    + "\n".join(result.stdout.splitlines()[-10:])
-                )
 
         return {
             "passed": passed,
