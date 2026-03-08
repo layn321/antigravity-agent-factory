@@ -1,0 +1,21 @@
+namespace {{ project_name_pascal }}.Api.Controllers;
+
+using Microsoft.AspNetCore.Mvc;
+
+[ApiController]
+[Route("[controller]")]
+public class {{ primary_controller_name }}Controller : ControllerBase
+{
+    private readonly ILogger<{{ primary_controller_name }}Controller> _logger;
+
+    public {{ primary_controller_name }}Controller(ILogger<{{ primary_controller_name }}Controller> logger)
+    {
+        _logger = logger;
+    }
+
+    [HttpGet]
+    public IActionResult Get()
+    {
+        return Ok(new { Status = "Active", System = "{{ project_name }}" });
+    }
+}

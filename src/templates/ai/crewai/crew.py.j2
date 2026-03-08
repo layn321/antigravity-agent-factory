@@ -1,0 +1,25 @@
+from crewai import Agent, Task, Crew, Process
+
+def create_{{ project_name | snake_case }}_crew():
+    {{ primary_agent | snake_case }} = Agent(
+        role='{{ primary_agent_role }}',
+        goal='{{ primary_agent_goal }}',
+        backstory='{{ primary_agent_backstory }}',
+        verbose=True,
+        allow_delegation=False
+    )
+
+    task1 = Task(
+        description='Execute initial analysis for {{ project_name }}.',
+        expected_output='A comprehensive summary report.',
+        agent={{ primary_agent | snake_case }}
+    )
+
+    crew = Crew(
+        agents=[{{ primary_agent | snake_case }}],
+        tasks=[task1],
+        verbose=True,
+        process=Process.sequential
+    )
+
+    return crew

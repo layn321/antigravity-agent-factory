@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "telemetry-formats",
+  "name": "Telemetry Formats",
+  "description": "Standardized schema for agent execution telemetry used in prompt optimization loops",
+  "version": "1.0.0",
+  "formats": {
+    "trace_summary": {
+      "fields": {
+        "trace_id": "string",
+        "agent_id": "string",
+        "version": "string",
+        "timestamp": "ISO8601",
+        "input": "object",
+        "output": "object",
+        "latency_ms": "number",
+        "token_usage": {
+          "prompt": "number",
+          "completion": "number",
+          "total": "number"
+        },
+        "feedback": {
+          "score": "number",
+          "comment": "string"
+        }
+      }
+    }
+  }
+}

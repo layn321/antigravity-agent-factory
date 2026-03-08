@@ -375,7 +375,9 @@ class StructureValidator:
             actual = actual_counts.get(section, 0)
 
             if not info["found"]:
-                messages.append(f"⚠️  Section '{section}' count not found in README.md")
+                messages.append(
+                    f"WARNING: Section '{section}' count not found in README.md"
+                )
                 # Don't fail the build for a missing section count in README, just warning
                 continue
 
@@ -385,21 +387,21 @@ class StructureValidator:
             if is_threshold:
                 if actual < expected:
                     messages.append(
-                        f"❌ '{section}' counts below minimum threshold: actual {actual} < expected {expected}+"
+                        f"FAIL: '{section}' counts below minimum threshold: actual {actual} < expected {expected}+"
                     )
                     is_valid = False
                 else:
                     messages.append(
-                        f"✅ '{section}': {actual} (matches README.md threshold {expected}+)"
+                        f"OK: '{section}': {actual} (matches README.md threshold {expected}+)"
                     )
             else:
                 if actual != expected:
                     messages.append(
-                        f"❌ '{section}' counts mismatch: actual {actual} vs README {expected}"
+                        f"FAIL: '{section}' counts mismatch: actual {actual} vs README {expected}"
                     )
                     is_valid = False
                 else:
-                    messages.append(f"✅ '{section}': {actual} (matches README.md)")
+                    messages.append(f"OK: '{section}': {actual} (matches README.md)")
 
         return is_valid, messages
 
@@ -522,7 +524,7 @@ def main():
 
     if args.update:
         if validator.update_readme():
-            print("✅ Updated README.md with current structure counts")
+            print("OK: Updated README.md with current structure counts")
             return 0
         else:
             print("ℹ️  README.md already up to date")
@@ -539,10 +541,10 @@ def main():
         print(msg)
 
     if not is_valid:
-        print("\n❌ Structure validation failed. Run with --update to fix.")
+        print("\nFAIL: Structure validation failed. Run with --update to fix.")
         return 1
 
-    print("\n✅ All structure counts match README.md")
+    print("\nOK: All structure counts match README.md")
     return 0
 
 

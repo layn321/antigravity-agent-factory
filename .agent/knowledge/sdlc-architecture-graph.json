@@ -1,0 +1,182 @@
+{
+  "id": "sdlc-architecture-graph",
+  "name": "SDLC Architecture Constraints and Memory",
+  "description": "Defines the 7-Phase SDLC workflows mapping agents, skills, and knowledge boundaries across the factory.",
+  "version": "1.1.0",
+  "phases": [
+    {
+      "id": "01-ideation",
+      "name": "Ideation Phase",
+      "description": "Raw idea formulation and divergence.",
+      "input": "Raw ideas / user pain points",
+      "output": "knowledge/prototype-brief.md",
+      "skills": [
+        "framing-problems",
+        "brainstorming-ideas",
+        "scanning-competition",
+        "clustering-opportunities",
+        "briefing-prototypes"
+      ],
+      "agents": [
+        "workflow-architect"
+      ],
+      "human_gate_required": true,
+      "templates": [
+        "knowledge/prototype-brief.md",
+        "knowledge/ideas/raw/*.md"
+      ],
+      "patterns": [
+        "Divergent thinking",
+        "Unrestricted brainstorming"
+      ]
+    },
+    {
+      "id": "02-requirements",
+      "name": "Requirements Phase",
+      "description": "Constraint gathering and formal scoping.",
+      "input": "Approved prototype-brief.md",
+      "output": "knowledge/prd.md",
+      "skills": [
+        "eliciting-nfr",
+        "mapping-dependencies",
+        "writing-prd",
+        "slicing-stories",
+        "reviewing-requirements",
+        "managing-plane-tasks"
+      ],
+      "agents": [
+        "workflow-architect"
+      ],
+      "human_gate_required": true,
+      "templates": [
+        "knowledge/prd.md",
+        "knowledge/nfr.md"
+      ],
+      "patterns": [
+        "Convergent synthesis",
+        "Gherkin acceptance criteria",
+        "Multi-Agent Debate"
+      ]
+    },
+    {
+      "id": "03-architecture",
+      "name": "Architecture Phase",
+      "description": "System design, logical mapping, API contracts.",
+      "input": "Approved prd.md",
+      "output": "Architecture Docs (ADRs, System Design)",
+      "skills": [
+        "designing-ai-systems"
+      ],
+      "agents": [
+        "workflow-architect"
+      ],
+      "human_gate_required": false,
+      "templates": [
+        "knowledge/ai-design.md",
+        "docs/ADR/*.md"
+      ],
+      "patterns": [
+        "Three-tier boundaries (Always/Ask first/Never)"
+      ]
+    },
+    {
+      "id": "04-build",
+      "name": "Build Phase",
+      "description": "Implementation of capabilities.",
+      "input": "Architecture Docs",
+      "output": "Working Implementation",
+      "skills": [
+        "developing-fastapi",
+        "developing-nextjs",
+        "generating-templates"
+      ],
+      "agents": [
+        "template-generator"
+      ],
+      "human_gate_required": false,
+      "templates": [
+        "src/*",
+        "tests/*"
+      ],
+      "patterns": [
+        "Vertical story slicing"
+      ]
+    },
+    {
+      "id": "05-test-eval",
+      "name": "Test & Eval Phase",
+      "description": "Test suite execution and systemic integrity.",
+      "input": "Working Implementation",
+      "output": "Automated test reports",
+      "skills": [
+        "testing-frontend",
+        "clean-code-review"
+      ],
+      "agents": [
+        "test-conductor",
+        "system-steward"
+      ],
+      "human_gate_required": false,
+      "templates": [
+        "knowledge/eval-reports/*.md"
+      ],
+      "patterns": [
+        "Adversarial review (Red-teaming)"
+      ]
+    },
+    {
+      "id": "06-deploy",
+      "name": "Deploy Phase",
+      "description": "Formal commit and deployment tasks.",
+      "input": "Tested implementation",
+      "output": "Tagged Release",
+      "skills": [
+        "committing-releases"
+      ],
+      "agents": [
+        "registry-clerk"
+      ],
+      "human_gate_required": true,
+      "templates": [
+        "CHANGELOG.md",
+        "release-notes.md"
+      ],
+      "patterns": [
+        "Semantic versioning",
+        "CI/CD Gatekeeping"
+      ]
+    },
+    {
+      "id": "07-monitor",
+      "name": "Monitor Phase",
+      "description": "Live continuous observation and iterative feedback loops.",
+      "input": "Live deployed system",
+      "output": "Feedback mapping",
+      "skills": [
+        "prompt-engineering"
+      ],
+      "agents": [
+        "workflow-architect",
+        "integrity-guardian"
+      ],
+      "human_gate_required": false,
+      "templates": [
+        "knowledge/telemetry/*.md"
+      ],
+      "patterns": [
+        "Consent-driven learning",
+        "Prompt iteration"
+      ]
+    }
+  ],
+  "meta_orchestration": {
+    "workflow": ".agent/workflows/sdlc-meta-orchestrator.md",
+    "role": "Supervises the transition between the 7 phases, ensuring phase gates are respected and artifacts are handed off correctly."
+  },
+  "patterns": {
+    "SDLC Phasing": "Formalizing the software lifecycle into 7 discrete phases bounded by automated human-in-the-loop gates."
+  },
+  "best_practices": [],
+  "anti_patterns": [],
+  "category": "Architecture"
+}

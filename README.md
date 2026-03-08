@@ -117,12 +117,12 @@ The framework's power lies in the interaction between its core components.
 #### Current Implementation Stats
 This reference implementation currently includes a comprehensive set of verified components:
 - **Agents**: 10 active agents in `.agent/agents` (10 agents)
-- **Skills**: 191 specialized skills in `.agent/skills` (211 skills)
+- **Skills**: 211 specialized skills in `.agent/skills` (211 skills)
 - **Blueprints**: 34 project blueprints in `.agent/blueprints` (34 blueprints)
-- **Knowledge**: 268 JSON knowledge files in `.agent/knowledge` (278 files)
+- **Knowledge**: 278 JSON knowledge files in `.agent/knowledge` (278 files)
 - **Patterns**: 113 architectural patterns in `.agent/patterns` (113 patterns)
-- **Templates**: 307 Jinja2 templates in `.agent/templates` (309 templates)
-- **Verification**: 76 automated validation tests (83 tests)
+- **Templates**: 309 Jinja2 templates in `.agent/templates` (309 templates)
+- **Verification**: 83 automated validation tests (83 tests)
 
 #### Integrity Guardian (Layer 0)
 An active runtime protection system that monitors all agent operations.

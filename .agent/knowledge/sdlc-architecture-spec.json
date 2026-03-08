@@ -1,0 +1,103 @@
+{
+  "name": "Antigravity SDLC Architecture Spec",
+  "version": "1.0.0",
+  "framework": "7-Phase Phased SDLC",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Ideation",
+      "goal": "Vision & Prototype Definition",
+      "input": "Raw Problem Statement / Idea",
+      "output": "knowledge/prototype-brief.md",
+      "primary_agent": "workflow-architect",
+      "required_skills": [
+        "framing-problems",
+        "brainstorming-ideas"
+      ]
+    },
+    {
+      "id": "phase-2",
+      "name": "Requirements",
+      "goal": "Formalizing Features & Acceptance Criteria",
+      "input": "knowledge/prototype-brief.md",
+      "output": "knowledge/prd.md",
+      "primary_agent": "workflow-architect",
+      "required_skills": [
+        "writing-prd",
+        "eliciting-nfr",
+        "slicing-stories"
+      ]
+    },
+    {
+      "id": "phase-3",
+      "name": "Architecture",
+      "goal": "Technical Design & API Contracts",
+      "input": "knowledge/prd.md",
+      "output": "knowledge/ai-design.md",
+      "primary_agent": "workflow-architect",
+      "required_skills": [
+        "designing-ai-systems",
+        "mapping-dependencies"
+      ]
+    },
+    {
+      "id": "phase-4",
+      "name": "Build",
+      "goal": "Asset Implementation & Code Generation",
+      "input": "knowledge/ai-design.md",
+      "output": "Source Code / System Assets",
+      "primary_agent": "template-generator",
+      "required_skills": [
+        "generating-templates",
+        "developing-fastapi"
+      ]
+    },
+    {
+      "id": "phase-5",
+      "name": "Test & Eval",
+      "goal": "Quality Assurance & Performance Benchmarking",
+      "input": "Source Code",
+      "output": "knowledge/eval-report.md",
+      "primary_agent": "test-conductor",
+      "required_skills": [
+        "reviewing-clean-code",
+        "testing-frontend"
+      ]
+    },
+    {
+      "id": "phase-6",
+      "name": "Deploy",
+      "goal": "Release Engineering & CI/CD Validation",
+      "input": "Verified Build",
+      "output": "knowledge/CHANGELOG.md",
+      "primary_agent": "registry-clerk",
+      "required_skills": [
+        "committing-releases"
+      ]
+    },
+    {
+      "id": "phase-7",
+      "name": "Monitor",
+      "goal": "Observability & Feedback Loop",
+      "input": "Live System",
+      "output": "knowledge/telemetry.md",
+      "primary_agent": "integrity-guardian",
+      "required_skills": [
+        "optimizing-prompts"
+      ]
+    }
+  ],
+  "governance": {
+    "gate_type": "Human-in-the-loop",
+    "approval_required": true,
+    "artifact_validation": "schema_strict"
+  },
+  "id": "sdlc-architecture-spec",
+  "patterns": {
+    "Architecture Blueprinting": "Specifying the required inputs, outputs, capabilities, and strict governance paths for each discrete phase."
+  },
+  "best_practices": [],
+  "anti_patterns": [],
+  "category": "Architecture",
+  "description": "SDLC Architecture Definition"
+}

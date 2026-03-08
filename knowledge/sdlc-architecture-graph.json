@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "id": "REQ-1",
+      "type": "requirement",
+      "label": "SDLC Phase 3 Core",
+      "source": "knowledge/prd.md"
+    },
+    {
+      "id": "COMP-1",
+      "type": "component",
+      "label": "Architecture Mapper",
+      "agent": "workflow-architect"
+    },
+    {
+      "id": "COMP-2",
+      "type": "component",
+      "label": "SDLC State Tracker",
+      "path": "docs/architecture/sdlc-architecture-spec.json"
+    }
+  ],
+  "edges": [
+    {
+      "from": "REQ-1",
+      "to": "COMP-1",
+      "label": "implemented_by"
+    },
+    {
+      "from": "COMP-1",
+      "to": "COMP-2",
+      "label": "updates"
+    }
+  ],
+  "metadata": {
+    "agents": [
+      "workflow-architect",
+      "test-conductor"
+    ],
+    "functional_coverage": 2
+  }
+}
