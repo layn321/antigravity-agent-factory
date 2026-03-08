@@ -178,28 +178,38 @@ def run_tests():
 
         passed = 0
         total = 0
+        if summary_line:
+            # Simple parsing logic
+            pass_match = re.search(r"(\d+) passed", summary_line)
+            fail_match = re.search(r"(\d+) failed", summary_line)
+            if pass_match:
+                passed = int(pass_match.group(1))
+            if fail_match:
+                failed = int(fail_match.group(1))
+                total = passed + failed
+            else:
+                total = passed  # All passed
 
-        # Simple parsing logic
-        pass_match = re.search(r"(\d+) passed", summary_line)
-        fail_match = re.search(r"(\d+) failed", summary_line)
-
-        if pass_match:
-            passed = int(pass_match.group(1))
-        if fail_match:
-            failed = int(fail_match.group(1))
-            total = passed + failed
-        else:
-            total = passed  # All passed
+        if result.returncode != 0:
+            print(f"Pytest failed with exit code {result.returncode}")
+            if result.stderr:
+                print(f"Pytest Stderr:\n{result.stderr}")
+            if not summary_line and result.stdout:
+                # If no summary line found, print the last few lines of stdout
+                print(
+                    "Last 10 lines of Pytest Stdout:\n"
+                    + "\n".join(result.stdout.splitlines()[-10:])
+                )
 
         return {
             "passed": passed,
             "total": total,
             "success": result.returncode == 0,
-            "output": summary_line,
+            "output": summary_line or "No summary found",
         }
     except Exception as e:
-        print(f"Error running tests: {e}")
-        return {"passed": 0, "total": 0, "success": False, "output": str(e)}
+        print(f"Critical error executing pytest: {e}")
+        return {"passed": 0, "total": 0, "success": False, "output": f"Crashed: {e}"}
 
 
 def generate_report(args, graph, test_results=None, p0_count=0):
