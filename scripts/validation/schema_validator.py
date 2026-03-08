@@ -46,10 +46,8 @@ from typing import Any, Dict, List, Optional
 try:
     from jsonschema import Draft7Validator
 except ImportError:
-    print(
-        "ERROR: jsonschema package required. Install with: pip install jsonschema>=4.17.0"
-    )
-    sys.exit(1)
+    # Let it fail naturally in tests so we see the traceback
+    raise
 
 try:
     import yaml

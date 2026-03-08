@@ -157,11 +157,21 @@ def run_tests():
     print("--- Running Unit Tests ---")
     # Use sys.executable to ensure we use the current Python binary
     python_exe = sys.executable
+    print(f"Diagnostic: sys.executable = {python_exe}", flush=True)
+    print(f"Diagnostic: sys.path = {sys.path}", flush=True)
+    try:
+        import jsonschema
+
+        print(f"Diagnostic: jsonschema version = {jsonschema.__version__}", flush=True)
+    except ImportError:
+        print("Diagnostic: jsonschema NOT found in this environment", flush=True)
+
     cmd = [
         python_exe,
         "-m",
         "pytest",
         "tests",
+        "-v",
         "-p",
         "no:sugar",
     ]
