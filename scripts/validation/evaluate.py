@@ -162,7 +162,6 @@ def run_tests():
         "-m",
         "pytest",
         "tests",
-        "--tb=no",
         "-p",
         "no:sugar",
     ]
@@ -191,11 +190,17 @@ def run_tests():
                 total = passed  # All passed
 
         if result.returncode != 0:
-            print(f"Pytest failed with exit code {result.returncode}")
+            print(f"Pytest failed with exit code {result.returncode}", flush=True)
             if result.stdout:
-                print(f"Pytest Stdout:\n{result.stdout}")
+                print(
+                    f"--- PYTEST STDOUT ---\n{result.stdout}\n--- END STDOUT ---",
+                    flush=True,
+                )
             if result.stderr:
-                print(f"Pytest Stderr:\n{result.stderr}")
+                print(
+                    f"--- PYTEST STDERR ---\n{result.stderr}\n--- END STDERR ---",
+                    flush=True,
+                )
 
         return {
             "passed": passed,
