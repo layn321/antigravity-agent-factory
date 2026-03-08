@@ -498,11 +498,17 @@ def knowledge_schema_path(factory_root: Path) -> Path:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def isolated_rag_workspace(tmp_path_factory, worker_id):
+def isolated_rag_workspace(tmp_path_factory, request):
     """
     Provide each pytest-xdist worker with an isolated RAG workspace.
     This prevents file locking conflicts when running RAG tests in parallel.
     """
+    # Try to get worker_id from xdist, default to "master" if not found
+    try:
+        worker_id = request.getfixturevalue("worker_id")
+    except Exception:
+        worker_id = "master"
+
     if worker_id == "master":
         # Not running in parallel, use defaults
         yield

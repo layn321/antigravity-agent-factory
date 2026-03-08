@@ -92,8 +92,8 @@ jobs:
       - name: Run Adversarial Evaluation
         shell: micromamba-shell {0}
         run: |
-          # Install all core dependencies plus pytest
-          pip install -r requirements.txt pytest
+          # Install all core and development dependencies
+          pip install -r requirements-dev.txt
           # Use regular python within shell since conda is set up by micromamba
           python scripts/validation/evaluate.py --adversarial --ci --phase CI
 
