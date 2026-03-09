@@ -328,5 +328,8 @@
   "memory_mcp_entity": "System_Self_Optimization",
   "patterns": [],
   "best_practices": [],
-  "anti_patterns": []
+  "anti_patterns": [],
+  "related_knowledge": [
+    "manifest.json"
+  ]
 }

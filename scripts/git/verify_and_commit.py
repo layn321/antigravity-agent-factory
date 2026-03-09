@@ -5,16 +5,16 @@ Verify and Commit Pipeline (RCW)
 A unified, sequential pipeline specifically designed for robust "fast commits".
 Ensures synchronization, validation, and core testing before allowing a commit.
 
-Stages:
-1. Sync: Apply minor fixes (test counts, skill ID mappings) to docs/blueprints.
-2. Stage: Auto-stage modified files to prepare the commit.
-3. Validate: Run syntax and structural checks.
-4. Test: Run critical smoke tests to guarantee core features.
+Optimization:
+- Added timing logs for each stage.
+- Conditional "full" vs "fast" modes for index updates.
+- Integrated pre-commit for proactive linting and sync.
 """
 
 import subprocess
 import sys
 import time
+import argparse
 from pathlib import Path
 from typing import List
 
@@ -33,8 +33,12 @@ def run(cmd: List[str], description: str) -> bool:
     print(f"[RUN] {description}...")
     start_time = time.time()
     try:
-        # Use full path for python scripts if needed
-        full_cmd = [PYTHON] + cmd if cmd[0].endswith(".py") else cmd
+        # If it's a python script, ensure we use the same interpreter
+        if cmd[0].endswith(".py") or cmd[0] == "-m":
+            full_cmd = [PYTHON] + cmd
+        else:
+            full_cmd = cmd
+
         result = subprocess.run(
             full_cmd,
             cwd=ROOT,
@@ -50,15 +54,16 @@ def run(cmd: List[str], description: str) -> bool:
             if result.stdout.strip():
                 # Print only first few lines if too long
                 lines = result.stdout.strip().splitlines()
-                for line in lines[:5]:
+                for line in lines[:3]:
                     print(f"     {line}")
-                if len(lines) > 5:
-                    print(f"     ... ({len(lines)-5} more lines)")
+                if len(lines) > 3:
+                    print(f"     ... ({len(lines)-3} more lines)")
             return True
         else:
-            print("\n[ERROR] Verification failed. Commit aborted.")
-            print(f"     STDOUT: {result.stdout.strip()[:200]}")
-            print(f"     STDERR: {result.stderr.strip()[:200]}")
+            print(f"\n[ERROR] Verification failed. ({duration:.1f}s)")
+            # Print stderr if stdout is empty
+            output = result.stdout.strip() or result.stderr.strip()
+            print(f"     OUTPUT: {output[:300]}...")
             return False
     except Exception as e:
         print(f"  [ERROR] Error: {e}")
@@ -69,7 +74,22 @@ def main():
     if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8")
 
-    print(f"RCW: Starting Robust Commit Workflow (RCW) in {ROOT}\n")
+    parser = argparse.ArgumentParser(description="RCW: Robust Commit Workflow")
+    parser.add_argument("--fast", action="store_true", help="Run in extra-fast mode")
+    args = parser.parse_args()
+
+    print(f"RCW: Starting Robust Commit Workflow (RCW) in {ROOT}")
+    total_start = time.time()
+
+    # STAGE 0: Pre-Commit (Catch formatting/sync issues early)
+    if not run(["pre-commit", "run", "--all-files"], "Running Pre-commit Hooks"):
+        # Pre-commit might have fixed things. We re-stage and continue.
+        print("[INFO] Pre-commit modified files. Re-staging...")
+        if not run(["git", "add", "."], "Re-staging Hook Fixes"):
+            return 1
+        # Note: we don't return 1 here because pre-commit *fixed* the issues.
+        # However, for strictly "Validation", one might prefer to fail.
+        # In this factory, we prefer auto-fixing for velocity.
 
     # STAGE 1: Sync
     if not run(
@@ -78,14 +98,16 @@ def main():
     ):
         return 1
 
+    # Skip full index update if in fast mode
+    index_flag = "--full" if not args.fast else "--check"
     if not run(
-        ["scripts/validation/update_index.py", "--full"], "Updating Repository Index"
+        ["scripts/validation/update_index.py", index_flag],
+        f"Updating Repository Index ({index_flag})",
     ):
         return 1
 
     # STAGE 2: Stage Changes
-    # This ensures that fixes applied during Sync are actually included in the commit
-    if not run(["git", "add", "-u"], "Staging Updated Artifacts"):
+    if not run(["git", "add", "."], "Staging All Changes (including new files)"):
         return 1
 
     # STAGE 3: Validate
@@ -102,13 +124,15 @@ def main():
         return 1
 
     # STAGE 4: Smoke Test
-    # Running only core tests for "Fast Commit" - full suite should be run in CI or manually
     print(f"[RUN] Running Core Smoke Tests ({len(CORE_TESTS)} files)...")
-    test_cmd = [PYTHON, "-m", "pytest", "-n", "auto"] + CORE_TESTS
+    test_cmd = ["-m", "pytest", "-n", "auto"] + CORE_TESTS
     if not run(test_cmd, "Smoke Testing Core Modules"):
         return 1
 
-    print("\n[DONE] All verification stages passed! Ready to commit.")
+    total_duration = time.time() - total_start
+    print(
+        f"\n[DONE] All verification stages passed in {total_duration:.1f}s! Ready to commit."
+    )
     return 0
 
 

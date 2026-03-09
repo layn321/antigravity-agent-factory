@@ -9,10 +9,5 @@
   },
   "content": {
     "templates": []
-  },
-  "id": "template-catalog",
-  "name": "Template Catalog",
-  "patterns": [],
-  "best_practices": [],
-  "anti_patterns": []
+  }
 }

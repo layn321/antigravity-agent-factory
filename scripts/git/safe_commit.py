@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 
-def run_verification(root_dir: Path) -> bool:
+def run_verification(root_dir: Path, fast: bool = False) -> bool:
     """
     Run the unified verify_and_commit pipeline.
     """
@@ -27,9 +27,11 @@ def run_verification(root_dir: Path) -> bool:
 
     try:
         # We use sys.executable to ensure we use the same python environment
-        result = subprocess.run(
-            [sys.executable, str(verifier)], cwd=root_dir, capture_output=False
-        )
+        cmd = [sys.executable, str(verifier)]
+        if fast:
+            cmd.append("--fast")
+
+        result = subprocess.run(cmd, cwd=root_dir, capture_output=False)
         return result.returncode == 0
     except Exception as e:
         print(f"[FAIL] Error running verification: {e}")
@@ -80,6 +82,9 @@ def main():
         "--push", action="store_true", help="Push to remote after commit"
     )
     parser.add_argument(
+        "--fast", action="store_true", help="Run streamlined verification"
+    )
+    parser.add_argument(
         "--skip-verify",
         action="store_true",
         help="Skip verification (NOT recommended)",
@@ -96,8 +101,10 @@ def main():
 
     # 1. Verification
     if not args.skip_verify:
-        print("🔍 Running Robust Verification Pipeline...")
-        if not run_verification(root_dir):
+        print(
+            f"🔍 Running Robust Verification Pipeline{' (FAST)' if args.fast else ''}..."
+        )
+        if not run_verification(root_dir, args.fast):
             print("\n❌ Verification failed. Commit aborted.")
             return 1
 

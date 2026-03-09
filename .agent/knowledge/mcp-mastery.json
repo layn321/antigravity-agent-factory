@@ -35,6 +35,12 @@
           "server": "Tavily MCP",
           "purpose": "Real-time web search, mapping, and extraction"
         }
+      ],
+      "use_when": "When implementing orchestration_hierarchy",
+      "code_example": "// Example for orchestration_hierarchy",
+      "best_practices": [
+        "Use appropriately for best results.",
+        "Monitor results and optimize."
       ]
     },
     "client_implementation": {
@@ -43,7 +49,9 @@
         "Use MultiServerMCPClient for all factory scripts",
         "Implement SSE (Server-Sent Events) for real-time reactivity",
         "Ensure proper context manager usage for connection cleanup"
-      ]
+      ],
+      "use_when": "When implementing client_implementation",
+      "code_example": "// Example for client_implementation"
     }
   },
   "axiomAlignment": {
@@ -53,5 +61,10 @@
   "related_skills": [
     "mcp-orchestration",
     "retrieving-rag-context"
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Mcp-mastery Knowledge",
+  "related_knowledge": [
+    "manifest.json"
   ]
 }

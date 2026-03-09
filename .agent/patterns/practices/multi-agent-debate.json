@@ -1,0 +1,25 @@
+{
+  "name": "Multi-Agent Debate (MAD)",
+  "topic": "Architectural Reasoning",
+  "description": "Adversarial reasoning protocol to surface trade-offs and edge cases.",
+  "id": "multi-agent-debate",
+  "version": "1.0.0",
+  "category": "patterns",
+  "patterns": {
+    "personae_debate": {
+      "name": "Personae Debate",
+      "description": "Adversarial reasoning protocol to surface trade-offs.",
+      "context": "Complex architectural choices or pattern selection.",
+      "implementation": "1. Invoke @Architect to propose a design. 2. Invoke @Bug-Hunter to challenge assumptions (RCA, edge cases). 3. Synthesize the debate into a consensus plan."
+    }
+  },
+  "best_practices": [
+    "Use distinct internal reasoning branches for each persona.",
+    "Document the 'Dissension' point if no consensus is reached.",
+    "Prioritize simplicity over cleverness."
+  ],
+  "anti_patterns": [
+    "One persona agreeing with the other without critical analysis.",
+    "Debating low-impact decisions (style/variable names)."
+  ]
+}

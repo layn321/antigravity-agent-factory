@@ -82,15 +82,7 @@ Follow this end-to-end workflow for all Plane project management operations.
 ### 1. Listing & Discovery
 Choose the specific listing tool based on your needs. Note that **server-side filtering by status (state) is not supported**; you must fetch the issues and filter the JSON results locally.
 
-#### A. List all Project Issues
-```json
-// Tool: mcp_plane_list_project_issues
-{
-  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe"
-}
-```
-
-#### B. List Issues by Cycle
+#### A. List Active Cycle Issues (Preferred for Daily Work)
 ```json
 // Tool: mcp_plane_list_cycle_issues
 {
@@ -99,9 +91,17 @@ Choose the specific listing tool based on your needs. Note that **server-side fi
 }
 ```
 
+#### B. List all Project Issues (Backlog Exploration)
+```json
+// Tool: mcp_plane_list_project_issues
+{
+  "project_id": "e71eb003-87d4-4b0c-a765-a044ac5affbe"
+}
+```
+
 #### C. Filtering by Status (Client-Side)
 Since the API does not support a `state` filter in the list tools, follow this pattern:
-1. Fetch issues using `mcp_plane_list_project_issues`.
+1. Fetch issues using `mcp_plane_list_cycle_issues` (for daily work) or `mcp_plane_list_project_issues` (for backlog).
 2. Iterate through the `results` array.
 3. Check `item["state"]["id"]` or `item["state"]["name"]` against your target status.
 4. Filter matching items locally.
@@ -242,27 +242,37 @@ You must separate *what* you did (mechanics) from *why* you did it (architecture
 - **Poor (The "Alibi Blablabla")**: "Updated script. Fixed whitespace. Ran tests."
 - **Excellent (Architectural Insight)**: "Introduced a `post_solution.py` script bridging the Plane API with Jinja2 rendering. Decided to filter empty whitespace natively inside the Jinja template using `-set` blocks to offload cleaning logic from Python, ensuring clean HTML payloads."
 
-**Example `solution.json`:**
+**Example `solution.json` (Working Reference):**
 ```json
 {
-  "summary": "Isolated RAG workspaces for parallel CI workers to prevent file locking and SQLite corruption during `pytest -n 2`.",
+  "summary": "Resolved the 3 critical failures identified in the previous system audit and modernized Plane compliance.",
   "architectural_decisions": [
-    "Implemented `isolated_rag_workspace` fixture using pytest `tmp_path_factory`.",
-    "Bypassed the global `data/` directory entirely for CI runs to prevent process collisions.",
-    "Decided to patch `OptimizedRAG` initialization path dynamically rather than relying on env vars to maintain thread safety."
+    "Adopted dictionary-based pattern storage to align with system-structure schema validation requirements.",
+    "Shifted from array-based to key-value pairs for O(1) lookups and explicit metadata mapping.",
+    "Standardized Task Schema usage for all Plane issues to ensure machine-readable context engineering."
   ],
   "files_affected": [
-    "scripts/ai/rag/rag_optimized.py",
-    "tests/conftest.py"
+    ".agent/knowledge/hierarchical-memory-patterns.json",
+    ".agent/knowledge/atomic-skill-patterns.json",
+    ".agent/patterns/practices/reflection-gate.json",
+    ".agent/patterns/practices/multi-agent-debate.json",
+    ".agent/workflows/bugfix-resolution.md",
+    ".agent/workflows/feature-development.md",
+    ".agent/workflows/agent-development.md"
   ],
   "verification": [
-    { "type": "Parallel Smoke Test", "result": "PASS" }
+    {
+      "type": "unit",
+      "result": "PASS",
+      "details": "72 passed, 0 failed in 61s"
+    }
   ],
   "evolution": [
-    "Added CI parallelization blueprint.",
-    "Removed toxic data blobs from Git.",
-    "Stabilized standard factory CI/CD."
-  ]
+    "Modernized core workflows with mandatory Plane/Jinja2 reporting gates.",
+    "Standardized knowledge patterns as dictionary-based structures.",
+    "Established high-fidelity reporting mandates for all factory tasks."
+  ],
+  "notes": "Continued work on AGENT-123 (Modular Agent Architecture & Coordination Framework) to complete the persona-specialist harmonization."
 }
 ```
 
@@ -280,6 +290,7 @@ conda run -p D:\Anaconda\envs\cursor-factory python .agent/skills/routing/managi
 ```
 
 ## Best Practices
+- **Cycle-First Navigation**: ALWAYS use `mcp_plane_list_cycle_issues` for daily status checks. Only use `mcp_plane_list_project_issues` for cross-cycle backlog grooming.
 - **Memory-First**: Always query memory MCP (Step 0) before creating tasks to build situational awareness.
 - **Hypothesis-Driven**: Treat each task as a hypothesis — declare which assets solve the problem, then validate with tests.
 - **Always resolve metadata first**: Use `mcp_plane_list_labels`, `mcp_plane_list_states`, `mcp_plane_get_me` before creating work items.
@@ -287,6 +298,7 @@ conda run -p D:\Anaconda\envs\cursor-factory python .agent/skills/routing/managi
 - **Use expand for context**: When listing or retrieving items, use `expand: "labels,state,assignees"` for full metadata.
 - **Never hardcode cycle UUIDs**: Always query `mcp_plane_list_cycles` — cycles change every sprint.
 - **Document closures professionally**: Use `post_solution.py` to provide a technical summary, files affected, and verification proof.
+- **Respect formal identifiers**: Use the project's formal prefix (e.g., `AGENT-XX`) even if scripts allow numeric resolution.
 - **Respect label governance**: Only use labels from the synchronized set.
 - **Create missing assets**: If a task needs a skill, agent, or workflow that doesn't exist, use the `[NEW]` prefix and build it during execution.
 - **Evolve the knowledge graph**: After completing tasks, update both knowledge files and memory MCP entities with learnings.

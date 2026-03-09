@@ -1,0 +1,46 @@
+{
+  "name": "Atomic Skill Design",
+  "topic": "Skill Development",
+  "description": "Principles for creating stateless, single-purpose, and verifiable agent skills.",
+  "patterns": {
+    "single_responsibility": {
+      "name": "Single Responsibility",
+      "description": "Principles for create single-purpose and verifiable agent skills.",
+      "context": "Defining the scope of a new skill.",
+      "implementation": "Each skill MUST perform exactly one logical operation (e.g., 'Git Commit', 'RAG Search'). If it branches into unrelated logic, split it."
+    },
+    "verifiable_execution": {
+      "name": "Verifiable Execution",
+      "description": "Every SKILL.md MUST include a 'Verification' section with a concrete command to test the skill's output.",
+      "context": "Skill verification phase.",
+      "implementation": "Every SKILL.md MUST include a 'Verification' section with a concrete command to test the skill's output."
+    }
+  },
+  "best_practices": [
+    "Prefer statelessness over complex internal caching within the skill.",
+    "Use standard MCP tool names for interoperability.",
+    "Document all environment variable dependencies clearly."
+  ],
+  "anti_patterns": [
+    "God-Skills that attempt to handle entire workflows alone.",
+    "Skills that depend on specific user state without clear error messages."
+  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "atomic-skill-patterns",
+  "title": "Atomic-skill-patterns Knowledge",
+  "version": "1.0.0",
+  "category": "core",
+  "axiomAlignment": {
+    "A1_verifiability": "Patterns are verified through automated testing.",
+    "A2_user_primacy": "The user maintains control over all generated output.",
+    "A3_transparency": "All automated actions are logged and verifiable.",
+    "A4_non_harm": "Strict safety checks prevent destructive operations.",
+    "A5_consistency": "Uniform patterns ensure predictable system behavior."
+  },
+  "related_skills": [
+    "onboarding-flow"
+  ],
+  "related_knowledge": [
+    "manifest.json"
+  ]
+}

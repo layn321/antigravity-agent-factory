@@ -16,6 +16,7 @@ related_skills:
 templates:
 - none
 tools:
+- call_parallel
 - tavily_*
 - mcp_rag_*
 - mcp_memory_*
@@ -32,7 +33,13 @@ This skill governs the strategic selection and execution of MCP tools across the
 
 ## Process
 
-Follow these procedures to implement the capability:
+The orchestration of MCP tools follows a strict sequence to maximize efficiency and minimize latency:
+
+1.  **Tool Call Identification**: Analyze the user request to identify which MCP tools are required (e.g., `tavily_search`, `mcp_rag_search_library`).
+2.  **Skill-Level Memoization**: Before execution, check if the deterministic call (e.g., a specific search query) is already cached. Apply the `memoize_tool` decorator from `scripts/ai/memoization.py` to handle this automatically.
+3.  **Parallel Execution Strategy**: Group independent tool calls. If searching for facts while reading local docs, combine them using the `call_parallel` function to execute concurrently.
+4.  **Sequential Reasoning**: For complex tasks, use `mcp_sequential-thinking` to plan the next steps based on the outputs of the parallel tool calls.
+5.  **Failure Analysis & Retry**: If a tool fails, invoke the **Retry-with-Analysis** pattern. Perform a diagnostic grounding step (e.g., `list_dir`) before adjusting parameters and retrying.
 
 ## When to Use
 
@@ -61,9 +68,10 @@ This skill should be used when completing tasks related to orchestrating mcp.
 - **Repo Intelligence**: `mcp_deepwiki_ask_question(repoName, question)`, `mcp_deepwiki_read_wiki_structure(repoName)`, `mcp_deepwiki_read_wiki_contents(repoName)`
 - **Framework Docs**: `mcp_docs-langchain_SearchDocsByLangChain(query)`
 
-### 4. Utilities (Fetch & Sequential Thinking)
+### 4. Utilities (Fetch, Sequential Thinking, Parallelism)
 - **Fetch**: `mcp_fetch_fetch(url, raw, max_length)` - Stateless HTTP retrieval.
 - **Reasoning**: `mcp_sequential-thinking_sequentialthinking(thought, thoughtNumber, totalThoughts, nextThoughtNeeded)` - Structured problem solving.
+- **Parallelism**: `call_parallel(tool_calls: list)` - Execute multiple MCP tools concurrently.
 
 ---
 

@@ -35,9 +35,10 @@ This workflow is activated when:
 **Agent**: `project-operations-specialist`
 All bugs MUST have a corresponding Plane issue before work begins. Use the `managing-plane-tasks` skill.
 1. Check if an issue exists.
-2. If not, create an issue in Plane ensuring strict schema compliance (must be assigned to a module and a cycle).
-3. Ensure the issue has a `BUG` label and is set to "In Progress" when work starts.
-Use the MCP server tools (`mcp_plane_create_issue`, `mcp_plane_update_issue`) and NOT the legacy `manager.py` script.
+2. If not, create an issue in Plane using `create_task.py`.
+3. **Template Mandate**: You MUST use the Jinja2 template provided by the `managing-plane-tasks` skill.
+4. **Schema Compliance**: Every issue must be assigned to a module, cycle, and have a full Task Schema.
+5. Ensure the issue has a `BUG` label and is set to "In Progress" when work starts.
 
 ### Phase 0: Context Engineering (Memory-First)
 Before deep-diving into code, query the Active Consciousness to see if this bug is a known anti-pattern or if a similar fix exists.
@@ -80,9 +81,10 @@ Update the status in Plane using the MCP server tools. Use the `mcp_plane_update
 ### Phase Final: High-Fidelity Closure (Memory Induction)
 **Agent**: `project-operations-specialist`
 Close the issue using the strict methodology defined in the `managing-plane-tasks` skill.
-1. Create a detailed `solution.json` file containing `summary`, `architectural_decisions`, `files_affected`, `verification`, and `evolution`.
-2. **Documentation**: Invoke the `/documentation-workflow` to generate or update the `walkthrough.md` and related technical docs.
-3. Run the `post_solution.py` script (`python .agent/skills/routing/managing-plane-tasks/scripts/post_solution.py --issue <ISSUE_ID> --json <JSON_PATH> --close`) to formulate the high-fidelity comment and close the ticket in Plane. This serves as the Tier 4 Memory Proposal.
+1. Create a detailed `solution.json` file.
+2. **Template Mandate**: Run the `post_solution.py` script (`python .agent/skills/routing/managing-plane-tasks/scripts/post_solution.py --issue <ISSUE_ID> --json <JSON_PATH> --close`) to render the solution via Jinja2.
+3. **Documentation**: Invoke the `/documentation-workflow` to generate or update the `walkthrough.md`.
+4. This serves as the Tier 4 Memory Proposal.
 
 
 ## Decision Points

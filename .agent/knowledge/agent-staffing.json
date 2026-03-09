@@ -4,8 +4,13 @@
   "name": "Specialist Role & Skill Registry",
   "title": "Specialist Role & Skill Registry",
   "description": "Authoritative registry mapping Operational Intelligence roles to enriched, specialized agents and their Tactical Capability skillsets.",
-  "version": "4.0.0",
-  "last_updated": "2026-02-24",
+  "version": "4.1.0",
+  "last_updated": "2026-03-09",
+  "layers": {
+    "cognitive": "AGENTS.md (@Persona Layer)",
+    "functional": ".agent/agents/*.md (Specialist MD Layer)",
+    "governance": ".agent/rules/*.md (Rule Layer)"
+  },
   "category": "orchestration",
   "specialists": {
     "python_ai_intelligence": {
@@ -125,6 +130,7 @@
     },
     "system_architecture_intelligence": {
       "role": "System Architecture Specialist",
+      "persona": "@Architect",
       "id": "SYARCH",
       "squad": "Operational Mastery",
       "agent": "chain/system-architecture-specialist.md",
@@ -150,6 +156,7 @@
     },
     "project_operations_intelligence": {
       "role": "Project Operations Specialist",
+      "persona": "@Operator",
       "id": "PROPS",
       "squad": "Operational Mastery",
       "agent": "chain/project-operations-specialist.md",
@@ -172,6 +179,7 @@
     },
     "workflow_quality_intelligence": {
       "role": "Workflow & Quality Specialist",
+      "persona": "@Bug-Hunter",
       "id": "WQSS",
       "squad": "Operational Mastery",
       "agent": "evaluator-optimizer/workflow-quality-specialist.md",
@@ -196,6 +204,7 @@
     },
     "knowledge_operations_intelligence": {
       "role": "Knowledge Operations Specialist",
+      "persona": "@Documentarian",
       "id": "KNOPS",
       "squad": "Operational Mastery",
       "agent": "routing/knowledge-operations-specialist.md",

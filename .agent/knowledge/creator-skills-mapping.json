@@ -1,88 +1,107 @@
 {
-    "id": "creator-skills-mapping",
-    "name": "Creator Skills Mapping",
-    "title": "Creator Skills Mapping",
-    "description": "Defines the exact output artifacts for the factory's specialized creator skills, along with their active consumers.",
-    "version": "1.0.0",
-    "category": "factory-architecture",
-    "patterns": {
-        "artifact_generation": {
-            "description": "Generating a factory artifact using a creator skill.",
-            "code_example": "agent.execute_skill('knowledge-creator', prompt='...')"
-        }
-    },
-    "best_practices": [
-        "Always validate the generated artifacts against their JSON schemas.",
-        "Ensure specific consumers are updated when creator skills produce new output types."
-    ],
-    "anti_patterns": [
-        "Generating factory artifacts manually without using the dedicated creator skills.",
-        "Ignoring schema validation errors during creation."
-    ],
-    "content": {
-        "methodology": "FactoryCreationMethodology",
-        "rule": "Specialized creator skills MUST be used for generating new canonical artifacts to enforce schema validation.",
-        "creator_skills": [
-            {
-                "skill": "agent-creator",
-                "output_artifact": "Agents",
-                "schema_enforced": "agent.schema.json",
-                "active_consumers": []
-            },
-            {
-                "skill": "blueprint-creator",
-                "output_artifact": "Blueprints",
-                "schema_enforced": "blueprint.schema.json",
-                "active_consumers": []
-            },
-            {
-                "skill": "knowledge-creator",
-                "output_artifact": "Knowledge Files",
-                "schema_enforced": "knowledge-file.schema.json",
-                "active_consumers": [
-                    "knowledge-operations-specialist (agent)"
-                ]
-            },
-            {
-                "skill": "pattern-creator",
-                "output_artifact": "Patterns",
-                "schema_enforced": "agent-pattern.json",
-                "active_consumers": []
-            },
-            {
-                "skill": "skill-creator",
-                "output_artifact": "Skills",
-                "schema_enforced": "implicit",
-                "active_consumers": [
-                    "agent-creator (skill)",
-                    "blueprint-creator (skill)",
-                    "knowledge-creator (skill)",
-                    "pattern-creator (skill)",
-                    "template-creator (skill)",
-                    "workflow-creator (skill)",
-                    "workshop-creator (skill)",
-                    "retrieving-rag-context (skill)",
-                    "orchestrating-mcp (skill)"
-                ]
-            },
-            {
-                "skill": "template-creator",
-                "output_artifact": "Templates",
-                "schema_enforced": "template.schema.json",
-                "active_consumers": []
-            },
-            {
-                "skill": "workflow-creator",
-                "output_artifact": "Workflows",
-                "schema_enforced": "workflow.schema.json",
-                "active_consumers": []
-            },
-            {
-                "skill": "workshop-creator",
-                "output_artifact": "Workshops",
-                "schema_enforced": "implicit",
-                "active_consumers": []
-            }
-        ]
+  "id": "creator-skills-mapping",
+  "name": "Creator Skills Mapping",
+  "title": "Creator Skills Mapping",
+  "description": "Defines the exact output artifacts for the factory's specialized creator skills, along with their active consumers.",
+  "version": "1.0.0",
+  "category": "factory-architecture",
+  "patterns": {
+    "artifact_generation": {
+      "description": "Generating a factory artifact using a creator skill.",
+      "code_example": "agent.execute_skill('knowledge-creator', prompt='...')",
+      "use_when": "When implementing artifact_generation",
+      "best_practices": [
+        "Use appropriately for best results.",
+        "Monitor results and optimize."
+      ]
     }
+  },
+  "best_practices": [
+    "Always validate the generated artifacts against their JSON schemas.",
+    "Ensure specific consumers are updated when creator skills produce new output types."
+  ],
+  "anti_patterns": [
+    "Generating factory artifacts manually without using the dedicated creator skills.",
+    "Ignoring schema validation errors during creation."
+  ],
+  "content": {
+    "methodology": "FactoryCreationMethodology",
+    "rule": "Specialized creator skills MUST be used for generating new canonical artifacts to enforce schema validation.",
+    "creator_skills": [
+      {
+        "skill": "agent-creator",
+        "output_artifact": "Agents",
+        "schema_enforced": "agent.schema.json",
+        "active_consumers": []
+      },
+      {
+        "skill": "blueprint-creator",
+        "output_artifact": "Blueprints",
+        "schema_enforced": "blueprint.schema.json",
+        "active_consumers": []
+      },
+      {
+        "skill": "knowledge-creator",
+        "output_artifact": "Knowledge Files",
+        "schema_enforced": "knowledge-file.schema.json",
+        "active_consumers": [
+          "knowledge-operations-specialist (agent)"
+        ]
+      },
+      {
+        "skill": "pattern-creator",
+        "output_artifact": "Patterns",
+        "schema_enforced": "agent-pattern.json",
+        "active_consumers": []
+      },
+      {
+        "skill": "skill-creator",
+        "output_artifact": "Skills",
+        "schema_enforced": "implicit",
+        "active_consumers": [
+          "agent-creator (skill)",
+          "blueprint-creator (skill)",
+          "knowledge-creator (skill)",
+          "pattern-creator (skill)",
+          "template-creator (skill)",
+          "workflow-creator (skill)",
+          "workshop-creator (skill)",
+          "retrieving-rag-context (skill)",
+          "orchestrating-mcp (skill)"
+        ]
+      },
+      {
+        "skill": "template-creator",
+        "output_artifact": "Templates",
+        "schema_enforced": "template.schema.json",
+        "active_consumers": []
+      },
+      {
+        "skill": "workflow-creator",
+        "output_artifact": "Workflows",
+        "schema_enforced": "workflow.schema.json",
+        "active_consumers": []
+      },
+      {
+        "skill": "workshop-creator",
+        "output_artifact": "Workshops",
+        "schema_enforced": "implicit",
+        "active_consumers": []
+      }
+    ]
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "axiomAlignment": {
+    "A1_verifiability": "Patterns are verified through automated testing.",
+    "A2_user_primacy": "The user maintains control over all generated output.",
+    "A3_transparency": "All automated actions are logged and verifiable.",
+    "A4_non_harm": "Strict safety checks prevent destructive operations.",
+    "A5_consistency": "Uniform patterns ensure predictable system behavior."
+  },
+  "related_skills": [
+    "onboarding-flow"
+  ],
+  "related_knowledge": [
+    "manifest.json"
+  ]
 }

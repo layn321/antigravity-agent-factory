@@ -1,0 +1,25 @@
+{
+  "name": "Reflection Gate",
+  "topic": "Interaction Protocols",
+  "description": "A mandatory cognitive pause before code execution to ensure alignment and safety.",
+  "id": "reflection-gate",
+  "version": "1.0.0",
+  "category": "patterns",
+  "patterns": {
+    "planning_pause": {
+      "name": "The Planning Pause",
+      "description": "A mandatory cognitive pause before code execution.",
+      "context": "Before any multi-file edit or high-risk command.",
+      "implementation": "1. Stop current execution branch. 2. Generate implementation_plan.md. 3. Notify user with PathsToReview. 4. Wait for explicit 'Go' or approval."
+    }
+  },
+  "best_practices": [
+    "Always include a 'User Review Required' section in plans.",
+    "Small atomic changes are easier to verify than large ones.",
+    "Cite Axiom A2 (User Primacy) when unsure."
+  ],
+  "anti_patterns": [
+    "Skipping the plan for 'simple' edits that affect core logic.",
+    "Executing commands before the user has seen the plan."
+  ]
+}

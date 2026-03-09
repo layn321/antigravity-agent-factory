@@ -1,0 +1,55 @@
+{
+  "$schema": "./practice-pattern.json",
+  "practiceId": "P11_retry_with_analysis",
+  "name": "Retry-with-Analysis",
+  "frequency": "per_task",
+  "purpose": "Acknowledge and recover from transient or structural failures through diagnostic grounding rather than blind retries.",
+  "axiom_alignment": [
+    "A1_verifiability",
+    "A3_transparency"
+  ],
+  "participants": [
+    "agent"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "action": "Capture Error",
+      "guidance": "Stop execution and extract the exact error message from the failed tool call."
+    },
+    {
+      "step": 2,
+      "action": "Categorize Failure",
+      "guidance": "Determine if the error is Transient (network, timeout) or Structural (wrong path, missing file, incorrect arguments)."
+    },
+    {
+      "step": 3,
+      "action": "Analytical Grounding",
+      "guidance": "Execute a diagnostic tool (e.g., list_dir, view_file, or grep_search) to verify the state of the system related to the failure."
+    },
+    {
+      "step": 4,
+      "action": "Correction logic",
+      "guidance": "Based on the diagnostic output, adjust the tool arguments or repair the environment state."
+    },
+    {
+      "step": 5,
+      "action": "Execute Corrected Call",
+      "guidance": "Retry the original task with the verified parameters."
+    }
+  ],
+  "reflection_prompts": [
+    "Did I just retry blindly, or did I verify the state first?",
+    "Is this failure recurring, suggesting a deeper architectural issue?",
+    "What tool would have prevented this error if called earlier?"
+  ],
+  "artifacts": [
+    "Grounding analysis in task.md",
+    "Corrected tool call in logs"
+  ],
+  "success_indicators": [
+    "No infinite retry loops",
+    "Hallucination-free recovery",
+    "Verified file paths and arguments"
+  ]
+}

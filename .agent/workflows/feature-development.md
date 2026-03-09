@@ -22,7 +22,10 @@ The formal process for developing and delivering new features within the Antigra
 
 ## Phases
 
-The documentation generation process follows a structured path from harvesting context to artifact verification and system induction.
+### Phase 0: Project Initiation
+- **Goal**: Establish tracking and metadata.
+- **Action**: Use `managing-plane-tasks` to create a `FEATURE` issue.
+- **Mandate**: Use `create_task.py` with the Jinja2 template and task schema.
 
 ### 1. Requirements & Analysis
 - **Goal**: Deep understanding of the PRD and technical constraints.
@@ -48,7 +51,8 @@ The documentation generation process follows a structured path from harvesting c
 
 ### 6. Memory Induction
 - **Goal**: Persist new patterns/knowledge.
-- **Action**: Update `knowledge-manifest.json` via the `documentation-workflow`.
+- **Action 1**: Update `knowledge-manifest.json` via the `documentation-workflow`.
+- **Action 2**: Close the Plane issue via `post_solution.py` using the Jinja2 solution template.
 
 ## Best Practices
 - **Phase Gates**: Never skip a phase without explicit justification in the `walkthrough.md`.

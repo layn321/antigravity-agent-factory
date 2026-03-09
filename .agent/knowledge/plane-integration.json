@@ -1,50 +1,54 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "id": "plane-integration",
-    "name": "Plane Integration",
-    "title": "Plane PMS Native Integration",
-    "description": "Knowledge about Plane Project Management System integration using the Plane MCP server and automated professional solution reporting.",
-    "version": "2.0.0",
-    "category": "integration",
-    "axiomAlignment": {
-        "A1_verifiability": "MCP tool calls provide verifiable access via the official Plane API.",
-        "A3_transparency": "Jinja2 templates ensure transparent and consistent HTML payload generation.",
-        "A5_evolutionary_design": "Skill-based reporting evolves with project branding and orchestration standards."
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "id": "plane-integration",
+  "name": "Plane Integration",
+  "title": "Plane PMS Native Integration",
+  "description": "Knowledge about Plane Project Management System integration using the Plane MCP server and automated professional solution reporting.",
+  "version": "2.0.0",
+  "category": "integration",
+  "axiomAlignment": {
+    "A1_verifiability": "MCP tool calls provide verifiable access via the official Plane API.",
+    "A3_transparency": "Jinja2 templates ensure transparent and consistent HTML payload generation.",
+    "A5_evolutionary_design": "Skill-based reporting evolves with project branding and orchestration standards."
+  },
+  "related_skills": [
+    "managing-plane-tasks",
+    "orchestrating-mcp"
+  ],
+  "related_knowledge": [
+    "api-integration-patterns.json"
+  ],
+  "patterns": {
+    "mcp_access": {
+      "description": "Standardised Plane access via Plane MCP server",
+      "best_practices": [
+        "Always resolve metadata (labels, cycles, states) before creating work items.",
+        "Use expand=labels,state,assignees for full context."
+      ],
+      "use_when": "When implementing mcp_access",
+      "code_example": "// Example for mcp_access"
     },
-    "related_skills": [
-        "managing-plane-tasks",
-        "orchestrating-mcp"
-    ],
-    "related_knowledge": [
-        "api-integration-patterns.json"
-    ],
-    "patterns": {
-        "mcp_access": {
-            "description": "Standardised Plane access via Plane MCP server",
-            "best_practices": [
-                "Always resolve metadata (labels, cycles, states) before creating work items.",
-                "Use expand=labels,state,assignees for full context."
-            ]
-        },
-        "professional_reporting": {
-            "description": "Automated solution reporting for issue closure",
-            "tool": "post_solution.py",
-            "template": "solution_comment.html.j2",
-            "best_practices": [
-                "Mandatory for all closed issues.",
-                "Align aesthetics with the 'beautiful' task creation style.",
-                "Include summary, files affected, and verification proof."
-            ]
-        }
-    },
-    "best_practices": [
-        "Prefer MCP tools over direct ORM access for standard operations.",
-        "Always provide a professional solution summary when moving issues to DONE.",
-        "Maintain visual consistency across all Plane interactions."
-    ],
-    "anti_patterns": [
-        "Closing issues without a formatted solution comment.",
-        "Hardcoding UUIDs in task definitions; use dynamic resolution instead.",
-        "Exceeding the visual standards established in the 'beautiful' templates."
-    ]
+    "professional_reporting": {
+      "description": "Automated solution reporting for issue closure",
+      "tool": "post_solution.py",
+      "template": "solution_comment.html.j2",
+      "best_practices": [
+        "Mandatory for all closed issues.",
+        "Align aesthetics with the 'beautiful' task creation style.",
+        "Include summary, files affected, and verification proof."
+      ],
+      "use_when": "When implementing professional_reporting",
+      "code_example": "// Example for professional_reporting"
+    }
+  },
+  "best_practices": [
+    "Prefer MCP tools over direct ORM access for standard operations.",
+    "Always provide a professional solution summary when moving issues to DONE.",
+    "Maintain visual consistency across all Plane interactions."
+  ],
+  "anti_patterns": [
+    "Closing issues without a formatted solution comment.",
+    "Hardcoding UUIDs in task definitions; use dynamic resolution instead.",
+    "Exceeding the visual standards established in the 'beautiful' templates."
+  ]
 }

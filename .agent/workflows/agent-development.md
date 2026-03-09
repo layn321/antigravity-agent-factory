@@ -23,13 +23,20 @@ This workflow is activated when:
 - "Build the feature agent."
 - "Execute Phase 4 of SDLC."
 
-## Steps:
-1. **Target**: Load `knowledge/ai-design.md` and `knowledge/prd.md`.
+## Phases:
+
+### Phase 0: Project Initiation
+- **Goal**: Establish tracking and metadata.
+- **Action**: Use `managing-plane-tasks` to create an `AGENT` or `FEATURE` issue.
+- **Mandate**: Use `create_task.py` with the Jinja2 template and task schema.
+
+### 1. Target: Load `knowledge/ai-design.md` and `knowledge/prd.md`.
 2. **Execute**: Trigger `.agent/skills/parallel/agent-generation/SKILL.md` (if building agents).
 3. **Build**: Iterate on implementation based on `implementation_plan.md`.
 4. **Walkthrough**: Generate `walkthrough.md` using the `/documentation-workflow`.
 5. **Output**: Write implementation to the repository and ensure all technical docs are updated.
 6. **Follow-up**: Prompt user to run `/agent-testing` (Phase 5) to verify the build.
+7. **Phase Final: Closure**: Close the Plane issue via `post_solution.py` using the Jinja2 solution template.
 
 ## Phase Gate (Build):
 - Mandatory generation of `walkthrough.md`.

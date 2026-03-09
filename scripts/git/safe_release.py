@@ -1,39 +1,60 @@
 #!/usr/bin/env python3
 """
-Safe Release Automation (SRA)
+Safe Release Automation (SRA) v2.0
 
 Automates the release process:
 1. Validates the state via safe_commit.py.
-2. Extracts current version from CHANGELOG.md.
-3. Bumps version (patch, minor, major).
-4. Updates CHANGELOG.md.
-5. Commits and Tags the release.
-6. Pushes to remote.
+2. Detects current version from CHANGELOG.md and Git tags.
+3. Bumps version safely.
+4. Updates CHANGELOG.md (migrates [Unreleased] content).
+   - ABORTS if [Unreleased] is empty/missing or already released on HEAD.
+5. Commits, Tags, and Pushes.
 
 Usage:
-    python scripts/git/safe_release.py --bump minor
+    python scripts/git/safe_release.py --bump patch
 """
 
 import argparse
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Tuple
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 CHANGELOG_PATH = ROOT / "CHANGELOG.md"
 SAFE_COMMIT_PATH = ROOT / "scripts" / "git" / "safe_commit.py"
 
 
+def get_git_status() -> dict:
+    """Check current git state."""
+    res = {}
+    # Current tag on HEAD
+    tag_proc = subprocess.run(
+        ["git", "tag", "--points-at", "HEAD"], capture_output=True, text=True, cwd=ROOT
+    )
+    res["head_tags"] = tag_proc.stdout.strip().splitlines()
+
+    # Last tag overall
+    last_tag_proc = subprocess.run(
+        ["git", "describe", "--tags", "--abbrev=0"],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+    )
+    res["latest_tag"] = last_tag_proc.stdout.strip()
+
+    return res
+
+
 def get_current_version() -> Tuple[str, int]:
-    """Extract the latest version and its line number from CHANGELOG.md."""
+    """Extract the latest version from CHANGELOG.md."""
     if not CHANGELOG_PATH.exists():
         raise FileNotFoundError(f"CHANGELOG.md not found at {CHANGELOG_PATH}")
 
     content = CHANGELOG_PATH.read_text(encoding="utf-8")
-    # Matches ## [1.2.3]
     match = re.search(r"## \[(\d+\.\d+\.\d+)\]", content)
     if not match:
         raise ValueError("Could not find a version in CHANGELOG.md")
@@ -53,34 +74,67 @@ def bump_version(current: str, bump_type: str) -> str:
         patch = 0
     elif bump_type == "patch":
         patch += 1
-    else:
-        raise ValueError(f"Invalid bump type: {bump_type}")
-
     return f"{major}.{minor}.{patch}"
 
 
+def is_content_valuable(content: str) -> bool:
+    """Check if the extracted markdown content has actual information."""
+    if not content or not content.strip():
+        return False
+    # Remove placeholders and empty sections
+    stripped = re.sub(r"### (Added|Changed|Fixed)", "", content)
+    stripped = re.sub(r"[\s\-\n\r]+", "", stripped)
+    return len(stripped) > 0
+
+
 def update_changelog(new_version: str):
-    """Insert the new version header into CHANGELOG.md."""
+    """Move [Unreleased] content to new version and insert header."""
     content = CHANGELOG_PATH.read_text(encoding="utf-8")
     today = datetime.now().strftime("%Y-%m-%d")
-    new_header = f"## [{new_version}] - {today}\n"
 
-    # We find the position after "All notable changes to this project will be documented in this file.\n\n"
-    # Or just after the introduction.
-    # Actually, a better way is to find the first existing version and insert before it.
-    match = re.search(r"## \[\d+\.\d+\.\d+\]", content)
+    # Extract Unreleased section
+    unreleased_pattern = r"## \[Unreleased\](.*?)(?=## \[\d+\.\d+\.\d+\]|---|\Z)"
+    match = re.search(unreleased_pattern, content, re.DOTALL)
+
     if not match:
-        raise ValueError("Could not find insertion point in CHANGELOG.md")
+        print(
+            "ℹ️ Info: No ## [Unreleased] section found. Checking if there is anything to release..."
+        )
+        # If no unreleased section, we assume nothing to do unless forced (not implemented)
+        return False
 
-    insertion_point = match.start()
-    updated_content = (
-        content[:insertion_point]
-        + new_header
-        + "\n### Added\n- \n\n### Changed\n- \n\n### Fixed\n- \n\n"
-        + content[insertion_point:]
-    )
+    unreleased_content = match.group(1).strip()
+
+    if not is_content_valuable(unreleased_content):
+        print("ℹ️ Info: [Unreleased] section is empty or placeholder-only.")
+        # User requested: "unreleased entry is not needed"
+        # We clean it up if it exists but is empty.
+        cleaned_content = content.replace(match.group(0), "").strip() + "\n"
+        CHANGELOG_PATH.write_text(cleaned_content, encoding="utf-8")
+        print("[OK] Removed empty [Unreleased] section.")
+        return False
+
+    # Perform the migration
+    new_header = f"## [{new_version}] - {today}\n"
+    migrated_section = f"{new_header}\n{unreleased_content}\n\n"
+
+    # Remove old unreleased and insert new section before first version
+    content_without_unreleased = content.replace(match.group(0), "").strip()
+    insertion_match = re.search(r"## \[\d+\.\d+\.\d+\]", content_without_unreleased)
+
+    if insertion_match:
+        idx = insertion_match.start()
+        updated_content = (
+            content_without_unreleased[:idx]
+            + migrated_section
+            + content_without_unreleased[idx:]
+        )
+    else:
+        updated_content = content_without_unreleased + "\n\n" + migrated_section
+
     CHANGELOG_PATH.write_text(updated_content, encoding="utf-8")
-    print(f"[OK] Updated CHANGELOG.md to version {new_version}")
+    print(f"[OK] Migrated [Unreleased] to v{new_version}")
+    return True
 
 
 def run_command(cmd: list, description: str) -> bool:
@@ -98,65 +152,62 @@ def main():
     if sys.platform == "win32":
         sys.stdout.reconfigure(encoding="utf-8")
 
-    parser = argparse.ArgumentParser(description="Safe Release Automation")
-    parser.add_argument(
-        "--bump",
-        choices=["major", "minor", "patch"],
-        default="patch",
-        help="Type of version bump",
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Print actions without executing"
-    )
+    parser = argparse.ArgumentParser(description="Safe Release Automation v2.0")
+    parser.add_argument("--bump", choices=["major", "minor", "patch"], default="patch")
+    parser.add_argument("--fast", action="store_true")
+    parser.add_argument("--skip-verify", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
 
     args = parser.parse_args()
 
-    try:
-        current_version, _ = get_current_version()
-        new_version = bump_version(current_version, args.bump)
-        print(f"RELEASE: {current_version} -> {new_version}")
+    # 0. Git Awareness
+    git_info = get_git_status()
+    current_version, _ = get_current_version()
 
-        if args.dry_run:
-            print("--- DRY RUN ---")
-            print(f"Would update CHANGELOG.md to {new_version}")
-            print(f"Would run safe_commit.py 'Release {new_version}'")
-            print(f"Would run git tag v{new_version}")
-            print("Would run git push and git push --tags")
-            return 0
+    print(f"Current version in CHANGELOG: {current_version}")
+    if git_info["head_tags"]:
+        print(f"Current commit is already tagged: {', '.join(git_info['head_tags'])}")
+        # If HEAD is already tagged with the current version, we should probably stop
+        # unless the user wants to bump further.
+        if f"v{current_version}" in git_info["head_tags"]:
+            print("⚠️ HEAD is already at the latest version mentioned in CHANGELOG.")
 
-        # 1. Update Changelog
-        update_changelog(new_version)
+    new_version = bump_version(current_version, args.bump)
 
-        # 2. Safe Commit (this runs verification)
-        commit_msg = f"Release {new_version}"
-        if not run_command(
-            [sys.executable, str(SAFE_COMMIT_PATH), commit_msg],
-            "Running Safe Commit (Verification)",
-        ):
-            print("❌ Safe commit failed. Aborting release.")
-            return 1
-
-        # 3. Tag
-        tag_name = f"v{new_version}"
-        if not run_command(
-            ["git", "tag", "-a", tag_name, "-m", commit_msg], f"Creating tag {tag_name}"
-        ):
-            return 1
-
-        # 4. Push
-        if not run_command(["git", "push"], "Pushing commit"):
-            return 1
-        if not run_command(
-            ["git", "push", "origin", tag_name], f"Pushing tag {tag_name}"
-        ):
-            return 1
-
-        print(f"\n[DONE] Successfully released version {new_version}!")
+    if args.dry_run:
+        print(f"--- DRY RUN: Bump {current_version} -> {new_version} ---")
         return 0
 
-    except Exception as e:
-        print(f"❌ Fatal error: {e}")
+    # 1. Update Changelog
+    if not update_changelog(new_version):
+        print("🛑 No unreleased changes found. Release aborted.")
+        return 0
+
+    # 2. Commit & Tag
+    commit_msg = f"Release {new_version}"
+    if args.skip_verify:
+        run_command(["git", "add", "."], "Staging all")
+        if not run_command(["git", "commit", "-m", commit_msg], "Committing"):
+            return 1
+    else:
+        cmd = [sys.executable, str(SAFE_COMMIT_PATH), commit_msg]
+        if args.fast:
+            cmd.append("--fast")
+        if not run_command(cmd, "Verifying and Committing"):
+            return 1
+
+    tag_name = f"v{new_version}"
+    if not run_command(
+        ["git", "tag", "-a", tag_name, "-m", commit_msg], f"Tagging {tag_name}"
+    ):
         return 1
+
+    # 3. Push
+    run_command(["git", "push"], "Pushing branch")
+    run_command(["git", "push", "origin", tag_name], "Pushing tag")
+
+    print(f"✨ Successfully released {new_version}")
+    return 0
 
 
 if __name__ == "__main__":

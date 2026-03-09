@@ -8,14 +8,16 @@ trigger: model_decision
 Standardizes how agents and personas are defined and specialized in `.agent/agents/`.
 
 ## Requirements
-- **Persona Format**: Every agent MUST have a markdown definition file in its appropriate pattern-based directory under `.agent/agents/`.
+- **3-Layer Architecture**:
+    1. **Cognitive Layer** (`AGENTS.md`): Defined high-level personas (@Architect, etc.).
+    2. **Functional Layer** (`.agent/agents/`): MD definitions for specialized missions.
+    3. **Governance Layer** (`.agent/rules/`): Constraints and tactical protocols.
 - **Mission First**: Definitions MUST start with a clear Mission Statement and Backstory.
 - **Capability Mapping**:
     - Bind specific skills from `.agent/skills/`.
     - Define tool access and limitations.
 - **Axiom Continuity**:
     - Agent behavior MUST align with `.agentrules`.
-    - Agents MUST respect Axiom A2 (User Primacy) and A6 (MCP-Awareness).
 - **Contextual Consciousness**:
     - Agents MUST be designed with a "MCP-First" grounding mindset.
     - Definitions MUST specify which MCP servers the agent is authorized to manage.
@@ -23,6 +25,6 @@ Standardizes how agents and personas are defined and specialized in `.agent/agen
 ## Process
 1. Identify missing specialization.
 2. Design persona and backstory (Phase 1 of `agent-development` workflow).
-3. Draft agent definition file.
+3. Draft agent definition file in `.agent/agents/`.
 4. Bind required skills and knowledge.
-5. Register in `agent-catalog.json`.
+5. Register in `agent-staffing.json` including the correct `@persona` mapping.

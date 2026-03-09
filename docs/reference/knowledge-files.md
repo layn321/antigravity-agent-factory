@@ -1,6 +1,6 @@
 ﻿# Knowledge Files Catalog
 
-The factory currently includes **277 knowledge files** covering: various aspects of AI development, project management, and technology stacks.
+The factory currently includes **279 knowledge files** covering: various aspects of AI development, project management, and technology stacks.
 
 | File | Type | Description |
 |------|------|-------------|
@@ -53,6 +53,7 @@ The factory currently includes **277 knowledge files** covering: various aspects
 | [artifact-dependencies](file:///.agent/knowledge/artifact-dependencies.json) |  |  |
 | [artifact-dependency-map](file:///.agent/knowledge/artifact-dependency-map.json) |  |  |
 | [asp-quick-reference](file:///.agent/knowledge/asp-quick-reference.json) |  |  |
+| [atomic-skill-patterns](file:///.agent/knowledge/atomic-skill-patterns.json) |  |  |
 | [augmented-coding-patterns](file:///.agent/knowledge/augmented-coding-patterns.json) |  |  |
 | [autogen-patterns](file:///.agent/knowledge/autogen-patterns.json) |  |  |
 | [axiom-zero-love-truth-beauty](file:///.agent/knowledge/axiom-zero-love-truth-beauty.json) |  |  |
@@ -126,6 +127,7 @@ The factory currently includes **277 knowledge files** covering: various aspects
 | [guardian-protocol](file:///.agent/knowledge/guardian-protocol.json) |  |  |
 | [guardrails-patterns](file:///.agent/knowledge/guardrails-patterns.json) |  |  |
 | [haystack-patterns](file:///.agent/knowledge/haystack-patterns.json) |  |  |
+| [hierarchical-memory-patterns](file:///.agent/knowledge/hierarchical-memory-patterns.json) |  |  |
 | [hitl-patterns](file:///.agent/knowledge/hitl-patterns.json) |  |  |
 | [hugging-face-patterns](file:///.agent/knowledge/hugging-face-patterns.json) |  |  |
 | [huggingface-patterns](file:///.agent/knowledge/huggingface-patterns.json) |  |  |
